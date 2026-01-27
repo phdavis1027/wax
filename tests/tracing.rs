@@ -1,4 +1,4 @@
-use warp::Filter;
+use wax::Filter;
 
 #[tokio::test]
 async fn uses_tracing() {
@@ -19,30 +19,30 @@ async fn uses_tracing() {
 
     log::info!("logged using log macro");
 
-    let ok = warp::any()
+    let ok = wax::any()
         .map(|| {
             tracing::info!("printed for every request");
         })
         .untuple_one()
-        .and(warp::path("aa"))
+        .and(wax::domain_is("aa"))
         .map(|| {
             tracing::info!("only printed when path '/aa' matches");
         })
         .untuple_one()
-        .map(warp::reply)
+        .map(wax::reply)
         // Here we add the tracing logger which will ensure that all requests has a span with
         // useful information about the request (method, url, version, remote_addr, etc.)
-        .with(warp::trace::request());
+        .with(wax::trace::request());
 
     tracing::info!("logged using tracing macro");
 
     // Send a request for /
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.reply(&ok);
     assert_eq!(resp.await.status(), 404);
 
     // Send a request for /aa
-    let req = warp::test::request().path("/aa");
+    let req = wax::test::request().path("/aa");
     let resp = req.reply(&ok);
     assert_eq!(resp.await.status(), 200);
 }

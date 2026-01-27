@@ -1,0 +1,53 @@
+//! Minimal example demonstrating the wax component server API.
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+#![allow(dead_code)]
+
+mod catapult_cred;
+mod customer_id;
+mod redis;
+mod tel;
+
+use bb8_redis::RedisConnectionManager;
+use tokio_xmpp::Component;
+use wax::{iq::GetFilter, xmpp::iq::Get, Filter, ServeComponent};
+
+use crate::{
+    catapult_cred::CatapultCred,
+    redis::{with_redis, FindInRedis, RedisPool},
+};
+
+#[tokio::main]
+async fn main() {
+    let manager = RedisConnectionManager::new("redis://127.0.0.1/").unwrap();
+    let redis_pool = bb8_redis::bb8::Pool::builder().build(manager).await.unwrap();
+
+    let ibr = wax::iq::param()
+        .get()
+        .and(with_redis(redis_pool))
+        .and_then(
+            async |Get {
+                       from,
+                       to,
+                       id,
+                       payload,
+                       ..
+                   }: Get,
+                   pool: RedisPool| {
+                let mut con = pool.get().await.map_err(|_| wax::reject::reject())?;
+                let catapult_cred = from
+                    .ok_or_else(wax::reject::reject)?
+                    .find::<CatapultCred, _>(&mut *con)
+                    .await
+                    .map_err(|_| wax::reject::reject())?;
+                Ok::<_, wax::Rejection>(wax::sink())
+            },
+        );
+
+    Component::new("sgxbwmsgsv2.localhost", "secret")
+        .await
+        .expect("Failed to connect")
+        .serve(ibr)
+        .run()
+        .await;
+}

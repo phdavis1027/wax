@@ -6,7 +6,7 @@ use std::sync::{
 };
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
-use warp::{sse::Event, Filter};
+use wax::{sse::Event, Filter};
 
 #[tokio::main]
 async fn main() {
@@ -16,43 +16,46 @@ async fn main() {
     // is an event stream sender.
     let users = Arc::new(Mutex::new(HashMap::new()));
     // Turn our "state" into a new Filter...
-    let users = warp::any().map(move || users.clone());
+    let users = wax::any().map(move || users.clone());
 
     // POST /chat -> send message
-    let chat_send = warp::path("chat")
-        .and(warp::post())
-        .and(warp::path::param::<usize>())
-        .and(warp::body::content_length_limit(500))
+    let chat_send = wax::domain_is("chat")
+        .and(wax::post())
+        .and(wax::path::param::<usize>())
+        .and(wax::body::content_length_limit(500))
         .and(
-            warp::body::bytes().and_then(|body: bytes::Bytes| async move {
+            wax::body::bytes().and_then(|body: bytes::Bytes| async move {
                 std::str::from_utf8(&body)
                     .map(String::from)
-                    .map_err(|_e| warp::reject::custom(NotUtf8))
+                    .map_err(|_e| wax::reject::custom(NotUtf8))
             }),
         )
         .and(users.clone())
         .map(|my_id, msg, users| {
             user_message(my_id, msg, &users);
-            warp::reply()
+            wax::reply()
         });
 
     // GET /chat -> messages stream
-    let chat_recv = warp::path("chat").and(warp::get()).and(users).map(|users| {
-        // reply using server-sent events
-        let stream = user_connected(users);
-        warp::sse::reply(warp::sse::keep_alive().stream(stream))
-    });
+    let chat_recv = wax::domain_is("chat")
+        .and(wax::get())
+        .and(users)
+        .map(|users| {
+            // reply using server-sent events
+            let stream = user_connected(users);
+            wax::sse::reply(wax::sse::keep_alive().stream(stream))
+        });
 
     // GET / -> index html
-    let index = warp::path::end().map(|| {
-        warp::http::Response::builder()
+    let index = wax::path::end().map(|| {
+        wax::http::Response::builder()
             .header("content-type", "text/html; charset=utf-8")
             .body(INDEX_HTML)
     });
 
     let routes = index.or(chat_recv).or(chat_send);
 
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    wax::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }
 
 /// Our global unique user id counter.
@@ -67,7 +70,7 @@ enum Message {
 
 #[derive(Debug)]
 struct NotUtf8;
-impl warp::reject::Reject for NotUtf8 {}
+impl wax::reject::Reject for NotUtf8 {}
 
 /// Our state of currently connected users.
 ///
@@ -75,7 +78,7 @@ impl warp::reject::Reject for NotUtf8 {}
 /// - Value is a sender of `Message`
 type Users = Arc<Mutex<HashMap<usize, mpsc::UnboundedSender<Message>>>>;
 
-fn user_connected(users: Users) -> impl Stream<Item = Result<Event, warp::Error>> + Send + 'static {
+fn user_connected(users: Users) -> impl Stream<Item = Result<Event, wax::Error>> + Send + 'static {
     // Use a counter to assign a new unique ID for this user.
     let my_id = NEXT_USER_ID.fetch_add(1, Ordering::Relaxed);
 
@@ -125,7 +128,7 @@ static INDEX_HTML: &str = r#"
         <title>Warp Chat</title>
     </head>
     <body>
-        <h1>warp chat</h1>
+        <h1>wax chat</h1>
         <div id="chat">
             <p><em>Connecting...</em></p>
         </div>

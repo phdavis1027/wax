@@ -26,13 +26,13 @@ use crate::reject::{self, Rejection};
 /// use std::net::SocketAddr;
 ///
 /// // Parse `content-length: 100` as a `u64`
-/// let content_length = warp::header::<u64>("content-length");
+/// let content_length = wax::header::<u64>("content-length");
 ///
 /// // Parse `host: 127.0.0.1:8080` as a `SocketAddr
-/// let local_host = warp::header::<SocketAddr>("host");
+/// let local_host = wax::header::<SocketAddr>("host");
 ///
 /// // Parse `foo: bar` into a `String`
-/// let foo = warp::header::<String>("foo");
+/// let foo = wax::header::<String>("foo");
 /// ```
 pub fn header<T: FromStr + Send + 'static>(
     name: &'static str,
@@ -71,7 +71,7 @@ pub(crate) fn header2<T: Header + Send + 'static>(
 ///
 /// ```
 /// // Grab the `authorization` header if it exists.
-/// let opt_auth = warp::header::optional::<String>("authorization");
+/// let opt_auth = wax::header::optional::<String>("authorization");
 /// ```
 pub fn optional<T>(
     name: &'static str,
@@ -132,7 +132,7 @@ where
 ///
 /// ```
 /// // Require `dnt: 1` header to be set.
-/// let must_dnt = warp::header::exact("dnt", "1");
+/// let must_dnt = wax::header::exact("dnt", "1");
 /// ```
 pub fn exact(
     name: &'static str,
@@ -164,7 +164,7 @@ pub fn exact(
 ///
 /// ```
 /// // Require `connection: keep-alive` header to be set.
-/// let keep_alive = warp::header::exact_ignore_case("connection", "keep-alive");
+/// let keep_alive = wax::header::exact_ignore_case("connection", "keep-alive");
 /// ```
 pub fn exact_ignore_case(
     name: &'static str,
@@ -192,9 +192,9 @@ pub fn exact_ignore_case(
 /// # Example
 ///
 /// ```
-/// use warp::{Filter, http::header::HeaderValue};
+/// use wax::{Filter, http::header::HeaderValue};
 ///
-/// let filter = warp::header::value("x-token")
+/// let filter = wax::header::value("x-token")
 ///     .map(|value: HeaderValue| {
 ///         format!("header value bytes: {:?}", value)
 ///     });
@@ -218,9 +218,9 @@ pub fn value(
 /// # Example
 ///
 /// ```
-/// use warp::{Filter, http::HeaderMap};
+/// use wax::{Filter, http::HeaderMap};
 ///
-/// let headers = warp::header::headers_cloned()
+/// let headers = wax::header::headers_cloned()
 ///     .map(|headers: HeaderMap| {
 ///         format!("header count: {}", headers.len())
 ///     });

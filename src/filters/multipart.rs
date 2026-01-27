@@ -25,7 +25,7 @@ const DEFAULT_FORM_DATA_MAX_LENGTH: u64 = 1024 * 1024 * 2;
 
 /// A [`Filter`](crate::Filter) to extract a `multipart/form-data` body from a request.
 ///
-/// Create with the `warp::multipart::form()` function.
+/// Create with the `wax::multipart::form()` function.
 #[derive(Debug, Clone)]
 pub struct FormOptions {
     max_length: Option<u64>,
@@ -33,7 +33,7 @@ pub struct FormOptions {
 
 /// A `Stream` of multipart/form-data `Part`s.
 ///
-/// Extracted with a `warp::multipart::form` filter.
+/// Extracted with a `wax::multipart::form` filter.
 pub struct FormData {
     inner: FormDataInner<'static>,
 }

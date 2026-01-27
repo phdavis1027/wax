@@ -9,15 +9,15 @@
 //!
 //! # Routing
 //!
-//! Routing in warp is simple yet powerful.
+//! Routing in wax is simple yet powerful.
 //!
 //! First up, matching a single segment:
 //!
 //! ```
-//! use warp::Filter;
+//! use wax::Filter;
 //!
 //! // GET /hi
-//! let hi = warp::path("hi").map(|| {
+//! let hi = wax::path("hi").map(|| {
 //!     "Hello, World!"
 //! });
 //! ```
@@ -25,19 +25,19 @@
 //! How about multiple segments? It's easiest with the `path!` macro:
 //!
 //! ```
-//! # use warp::Filter;
-//! // GET /hello/from/warp
-//! let hello_from_warp = warp::path!("hello" / "from" / "warp").map(|| {
-//!     "Hello from warp!"
+//! # use wax::Filter;
+//! // GET /hello/from/wax
+//! let hello_from_warp = wax::path!("hello" / "from" / "wax").map(|| {
+//!     "Hello from wax!"
 //! });
 //! ```
 //!
 //! Neat! But how do I handle **parameters** in paths?
 //!
 //! ```
-//! # use warp::Filter;
+//! # use wax::Filter;
 //! // GET /sum/:u32/:u32
-//! let sum = warp::path!("sum" / u32 / u32).map(|a, b| {
+//! let sum = wax::path!("sum" / u32 / u32).map(|a, b| {
 //!     format!("{} + {} = {}", a, b, a + b)
 //! });
 //! ```
@@ -45,9 +45,9 @@
 //! In fact, any type that implements `FromStr` can be used, in any order:
 //!
 //! ```
-//! # use warp::Filter;
+//! # use wax::Filter;
 //! // GET /:u16/times/:u16
-//! let times = warp::path!(u16 / "times" / u16).map(|a, b| {
+//! let times = wax::path!(u16 / "times" / u16).map(|a, b| {
 //!     format!("{} times {} = {}", a, b, a * b)
 //! });
 //! ```
@@ -56,12 +56,12 @@
 //! is that possible? Yep!
 //!
 //! ```
-//! # use warp::Filter;
-//! # let sum = warp::any().map(warp::reply);
+//! # use wax::Filter;
+//! # let sum = wax::any().map(wax::reply);
 //! # let times = sum.clone();
 //! // GET /math/sum/:u32/:u32
 //! // GET /math/:u16/times/:u16
-//! let math = warp::path("math");
+//! let math = wax::path("math");
 //! let math_sum = math.and(sum);
 //! let math_times = math.and(times);
 //! ```
@@ -72,10 +72,10 @@
 //! it's exactly what the `path!` macro has been doing internally.
 //!
 //! ```
-//! # use warp::Filter;
+//! # use wax::Filter;
 //! // GET /bye/:string
-//! let bye = warp::path("bye")
-//!     .and(warp::path::param())
+//! let bye = wax::path("bye")
+//!     .and(wax::path::param())
 //!     .map(|name: String| {
 //!         format!("Good bye, {}!", name)
 //!     });
@@ -91,12 +91,12 @@
 //!
 //!
 //! ```
-//! # use warp::Filter;
-//! # let sum = warp::path("sum");
-//! # let times = warp::path("times");
+//! # use wax::Filter;
+//! # let sum = wax::path("sum");
+//! # let times = wax::path("times");
 //! // GET /math/sum/:u32/:u32
 //! // GET /math/:u16/times/:u16
-//! let math = warp::path("math")
+//! let math = wax::path("math")
 //!     .and(sum.or(times));
 //! ```
 //!
@@ -104,13 +104,13 @@
 //! single API.
 //!
 //! ```
-//! # use warp::Filter;
-//! # let hi = warp::path("hi");
+//! # use wax::Filter;
+//! # let hi = wax::path("hi");
 //! # let hello_from_warp = hi.clone();
 //! # let bye = hi.clone();
 //! # let math = hi.clone();
 //! // GET /hi
-//! // GET /hello/from/warp
+//! // GET /hello/from/wax
 //! // GET /bye/:string
 //! // GET /math/sum/:u32/:u32
 //! // GET /math/:u16/times/:u16
@@ -135,7 +135,7 @@ use http::uri::PathAndQuery;
 use self::internal::Opaque;
 use crate::filter::{filter_fn, one, Filter, FilterBase, Internal, One, Tuple};
 use crate::reject::{self, Rejection};
-use crate::route::{self, Route};
+use crate::filtered_stanza::{self, FilteredStanza};
 
 /// Create an exact match path segment [`Filter`].
 ///
@@ -158,25 +158,20 @@ use crate::route::{self, Route};
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
 /// // Matches '/hello'
-/// let hello = warp::path("hello")
+/// let hello = wax::path("hello")
 ///     .map(|| "Hello, World!");
 /// ```
-pub fn path<P>(p: P) -> Exact<Opaque<P>>
+pub fn domain_is<D>(d: D) -> Exact<Opaque<D>>
 where
-    P: AsRef<str>,
+    D: AsRef<str>,
 {
-    let s = p.as_ref();
-    assert!(!s.is_empty(), "exact path segments should not be empty");
-    assert!(
-        !s.contains('/'),
-        "exact path segments should not contain a slash: {:?}",
-        s
-    );
+    let s = d.as_ref();
+    assert!(!s.is_empty(), "exact domain name should not be empty");
 
-    Exact(Opaque(p))
+    Exact(Opaque(d))
     /*
     segment(move |seg| {
         tracing::trace!("{:?}?: {:?}", p, seg);
@@ -206,7 +201,7 @@ where
 
     #[inline]
     fn filter(&self, _: Internal) -> Self::Future {
-        route::with(|route| {
+        filtered_stanza::with(|route| {
             let p = self.0.as_ref();
             future::ready(with_segment(route, |seg| {
                 tracing::trace!("{:?}?: {:?}", p, seg);
@@ -229,10 +224,10 @@ where
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
 /// // Matches '/'
-/// let hello = warp::path::end()
+/// let hello = wax::path::end()
 ///     .map(|| "Hello, World!");
 /// ```
 pub fn end() -> impl Filter<Extract = (), Error = Rejection> + Copy {
@@ -256,9 +251,9 @@ pub fn end() -> impl Filter<Extract = (), Error = Rejection> + Copy {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let route = warp::path::param()
+/// let route = wax::path::param()
 ///     .map(|id: u32| {
 ///         format!("You asked for /{}", id)
 ///     });
@@ -282,10 +277,10 @@ pub fn param<T: FromStr + Send + 'static>(
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let route = warp::path("foo")
-///     .and(warp::path::tail())
+/// let route = wax::path("foo")
+///     .and(wax::path::tail())
 ///     .map(|tail| {
 ///         // GET /foo/bar/baz would return "bar/baz".
 ///         format!("The tail after foo is {:?}", tail)
@@ -336,10 +331,10 @@ impl fmt::Debug for Tail {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let route = warp::path("foo")
-///     .and(warp::path::peek())
+/// let route = wax::path("foo")
+///     .and(wax::path::peek())
 ///     .map(|peek| {
 ///         // GET /foo/bar/baz would return "bar/baz".
 ///         format!("The path after foo is {:?}", peek)
@@ -392,11 +387,11 @@ impl fmt::Debug for Peek {
 /// # Example
 ///
 /// ```
-/// use warp::{Filter, path::FullPath};
+/// use wax::{Filter, path::FullPath};
 /// use std::{collections::HashMap, sync::{Arc, Mutex}};
 ///
 /// let counts = Arc::new(Mutex::new(HashMap::new()));
-/// let access_counter = warp::path::full()
+/// let access_counter = wax::path::full()
 ///     .map(move |path: FullPath| {
 ///         let mut counts = counts.lock().unwrap();
 ///
@@ -405,8 +400,8 @@ impl fmt::Debug for Peek {
 ///             .or_insert(0)
 ///     });
 ///
-/// let route = warp::path("foo")
-///     .and(warp::path("bar"))
+/// let route = wax::path("foo")
+///     .and(wax::path("bar"))
 ///     .and(access_counter)
 ///     .map(|count| {
 ///         format!("This is the {}th visit to this URL!", count)
@@ -440,7 +435,7 @@ where
     filter_fn(move |route| future::ready(with_segment(route, func)))
 }
 
-fn with_segment<F, U>(route: &mut Route, func: F) -> Result<U, Rejection>
+fn with_segment<F, U>(route: &mut FilteredStanza, func: F) -> Result<U, Rejection>
 where
     F: Fn(&str) -> Result<U, Rejection>,
 {
@@ -453,7 +448,7 @@ where
     ret
 }
 
-fn segment(route: &Route) -> &str {
+fn segment(route: &FilteredStanza) -> &str {
     route
         .path()
         .splitn(2, '/')
@@ -461,7 +456,7 @@ fn segment(route: &Route) -> &str {
         .expect("split always has at least 1")
 }
 
-fn path_and_query(route: &Route) -> PathAndQuery {
+fn path_and_query(route: &FilteredStanza) -> PathAndQuery {
     route
         .uri()
         .path_and_query()
@@ -479,10 +474,10 @@ fn path_and_query(route: &Route) -> PathAndQuery {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
 /// // Match `/sum/:a/:b`
-/// let route = warp::path!("sum" / u32 / u32)
+/// let route = wax::path!("sum" / u32 / u32)
 ///     .map(|a, b| {
 ///         format!("{} + {} = {}", a, b, a + b)
 ///     });
@@ -491,12 +486,12 @@ fn path_and_query(route: &Route) -> PathAndQuery {
 /// The equivalent filter chain without using the `path!` macro looks this:
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let route = warp::path("sum")
-///     .and(warp::path::param::<u32>())
-///     .and(warp::path::param::<u32>())
-///     .and(warp::path::end())
+/// let route = wax::path("sum")
+///     .and(wax::path::param::<u32>())
+///     .and(wax::path::param::<u32>())
+///     .and(wax::path::end())
 ///     .map(|a, b| {
 ///         format!("{} + {} = {}", a, b, a + b)
 ///     });
@@ -510,16 +505,16 @@ fn path_and_query(route: &Route) -> PathAndQuery {
 ///
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let prefix = warp::path!("math" / "sum" / ..);
+/// let prefix = wax::path!("math" / "sum" / ..);
 ///
-/// let sum = warp::path!(u32 / u32)
+/// let sum = wax::path!(u32 / u32)
 ///     .map(|a, b| {
 ///         format!("{} + {} = {}", a, b, a + b)
 ///     });
 ///
-/// let help = warp::path::end()
+/// let help = wax::path::end()
 ///     .map(|| "This API returns the sum of two u32's");
 ///
 /// let api = prefix.and(sum.or(help));
@@ -586,23 +581,23 @@ macro_rules! __internal_path {
 // path! compile fail tests
 
 /// ```compile_fail
-/// warp::path!("foo" / .. / "bar");
+/// wax::path!("foo" / .. / "bar");
 /// ```
 ///
 /// ```compile_fail
-/// warp::path!(.. / "bar");
+/// wax::path!(.. / "bar");
 /// ```
 ///
 /// ```compile_fail
-/// warp::path!("foo" ..);
+/// wax::path!("foo" ..);
 /// ```
 ///
 /// ```compile_fail
-/// warp::path!("foo" / .. /);
+/// wax::path!("foo" / .. /);
 /// ```
 ///
 /// ```compile_fail
-/// warp::path!(..);
+/// wax::path!(..);
 /// ```
 fn _path_macro_compile_fail() {}
 
@@ -632,13 +627,13 @@ mod tests {
         use std::mem::{size_of, size_of_val};
 
         assert_eq!(
-            size_of_val(&path("hello")),
+            size_of_val(&domain_is("hello")),
             size_of::<&str>(),
             "exact(&str) is size of &str"
         );
 
         assert_eq!(
-            size_of_val(&path(String::from("world"))),
+            size_of_val(&domain_is(String::from("world"))),
             size_of::<String>(),
             "exact(String) is size of String"
         );

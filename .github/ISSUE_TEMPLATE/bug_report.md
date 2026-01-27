@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 **Version**
-List the versions of all `warp` crates you are using. The easiest way to get
+List the versions of all `wax` crates you are using. The easiest way to get
 this information is using `cargo-tree`.
 
 `cargo install cargo-tree`
@@ -16,7 +16,7 @@ this information is using `cargo-tree`.
 
 Then:
 
-`cargo tree | grep warp`
+`cargo tree | grep wax`
 
 **Platform**
 The output of `uname -a` (UNIX), or version and 32 or 64-bit (Windows)

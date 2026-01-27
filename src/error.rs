@@ -4,7 +4,7 @@ use std::fmt;
 
 type BoxError = Box<dyn std::error::Error + Send + Sync>;
 
-/// Errors that can happen inside warp.
+/// Errors that can happen inside wax.
 pub struct Error {
     inner: BoxError,
 }
@@ -54,6 +54,8 @@ fn error_source() {
     assert!(e.source().unwrap().is::<std::fmt::Error>());
 }
 
+/// Macro to define a simple unit error type with Display and Debug implementations.
+#[macro_export]
 macro_rules! unit_error {
     (
         $(#[$docs:meta])*

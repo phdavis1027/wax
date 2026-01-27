@@ -25,23 +25,23 @@ use self::internal::{CorsFilter, IntoOrigin, Seconds};
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let cors = warp::cors()
+/// let cors = wax::cors()
 ///     .allow_origin("https://hyper.rs")
 ///     .allow_methods(vec!["GET", "POST", "DELETE"]);
 ///
-/// let route = warp::any()
-///     .map(warp::reply)
+/// let route = wax::any()
+///     .map(wax::reply)
 ///     .with(cors);
 /// ```
 /// If you want to allow any route:
 /// ```
-/// use warp::Filter;
-/// let cors = warp::cors()
+/// use wax::Filter;
+/// let cors = wax::cors()
 ///     .allow_any_origin();
 /// ```
-/// You can find more usage examples [here](https://github.com/seanmonstar/warp/blob/7fa54eaecd0fe12687137372791ff22fc7995766/tests/cors.rs).
+/// You can find more usage examples [here](https://github.com/seanmonstar/wax/blob/7fa54eaecd0fe12687137372791ff22fc7995766/tests/cors.rs).
 pub fn cors() -> Builder {
     Builder {
         credentials: false,
@@ -59,7 +59,7 @@ pub struct Cors {
     config: Arc<Configured>,
 }
 
-/// A constructed via `warp::cors()`.
+/// A constructed via `wax::cors()`.
 #[derive(Clone, Debug)]
 pub struct Builder {
     credentials: bool,
@@ -238,9 +238,9 @@ impl Builder {
     ///
     /// ```
     /// use std::time::Duration;
-    /// use warp::Filter;
+    /// use wax::Filter;
     ///
-    /// let cors = warp::cors()
+    /// let cors = wax::cors()
     ///     .max_age(30) // 30u32 seconds
     ///     .max_age(Duration::from_secs(30)); // or a Duration
     /// ```
@@ -463,9 +463,9 @@ mod internal {
 
     use super::{Configured, CorsForbidden, Validated};
     use crate::filter::{Filter, FilterBase, Internal, One};
+    use crate::filtered_stanza;
     use crate::generic::Either;
     use crate::reject::{CombineRejection, Rejection};
-    use crate::route;
 
     #[derive(Clone, Debug)]
     pub struct CorsFilter<F> {
@@ -489,8 +489,9 @@ mod internal {
         >;
 
         fn filter(&self, _: Internal) -> Self::Future {
-            let validated =
-                route::with(|route| self.config.check_request(route.method(), route.headers()));
+            let validated = filtered_stanza::with(|route| {
+                self.config.check_request(route.method(), route.headers())
+            });
 
             match validated {
                 Ok(Validated::Preflight(origin)) => {

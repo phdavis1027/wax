@@ -2,20 +2,20 @@
 
 use futures_util::{FutureExt, SinkExt, StreamExt};
 use serde_derive::Deserialize;
-use warp::ws::Message;
-use warp::Filter;
+use wax::ws::Message;
+use wax::Filter;
 
 #[tokio::test]
 async fn upgrade() {
     let _ = pretty_env_logger::try_init();
 
-    let route = warp::ws().map(|ws: warp::ws::Ws| ws.on_upgrade(|_| async {}));
+    let route = wax::ws().map(|ws: wax::ws::Ws| ws.on_upgrade(|_| async {}));
 
     // From https://tools.ietf.org/html/rfc6455#section-1.2
     let key = "dGhlIHNhbXBsZSBub25jZQ==";
     let accept = "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=";
 
-    let resp = warp::test::request()
+    let resp = wax::test::request()
         .header("connection", "upgrade")
         .header("upgrade", "websocket")
         .header("sec-websocket-version", "13")
@@ -28,7 +28,7 @@ async fn upgrade() {
     assert_eq!(resp.headers()["upgrade"], "websocket");
     assert_eq!(resp.headers()["sec-websocket-accept"], accept);
 
-    let resp = warp::test::request()
+    let resp = wax::test::request()
         .header("connection", "keep-alive, Upgrade")
         .header("upgrade", "Websocket")
         .header("sec-websocket-version", "13")
@@ -43,9 +43,9 @@ async fn upgrade() {
 async fn fail() {
     let _ = pretty_env_logger::try_init();
 
-    let route = warp::any().map(warp::reply);
+    let route = wax::any().map(wax::reply);
 
-    warp::test::ws()
+    wax::test::ws()
         .handshake(route)
         .await
         .expect_err("handshake non-websocket route should fail");
@@ -55,27 +55,27 @@ async fn fail() {
 async fn text() {
     let _ = pretty_env_logger::try_init();
 
-    let mut client = warp::test::ws()
+    let mut client = wax::test::ws()
         .handshake(ws_echo())
         .await
         .expect("handshake");
 
-    client.send_text("hello warp").await;
+    client.send_text("hello wax").await;
 
     let msg = client.recv().await.expect("recv");
-    assert_eq!(msg.to_str(), Ok("hello warp"));
+    assert_eq!(msg.to_str(), Ok("hello wax"));
 }
 
 #[tokio::test]
 async fn binary() {
     let _ = pretty_env_logger::try_init();
 
-    let mut client = warp::test::ws()
+    let mut client = wax::test::ws()
         .handshake(ws_echo())
         .await
         .expect("handshake");
 
-    client.send(warp::ws::Message::binary(&b"bonk"[..])).await;
+    client.send(wax::ws::Message::binary(&b"bonk"[..])).await;
     let msg = client.recv().await.expect("recv");
     assert!(msg.is_binary());
     assert_eq!(msg.as_bytes(), &b"bonk"[..]);
@@ -85,12 +85,12 @@ async fn binary() {
 async fn wsclient_sink_and_stream() {
     let _ = pretty_env_logger::try_init();
 
-    let mut client = warp::test::ws()
+    let mut client = wax::test::ws()
         .handshake(ws_echo())
         .await
         .expect("handshake");
 
-    let message = warp::ws::Message::text("hello");
+    let message = wax::ws::Message::text("hello");
     SinkExt::send(&mut client, message.clone()).await.unwrap();
     let received_message = client.next().await.unwrap().unwrap();
     assert_eq!(message, received_message);
@@ -100,14 +100,14 @@ async fn wsclient_sink_and_stream() {
 async fn close_frame() {
     let _ = pretty_env_logger::try_init();
 
-    let route = warp::ws().map(|ws: warp::ws::Ws| {
+    let route = wax::ws().map(|ws: wax::ws::Ws| {
         ws.on_upgrade(|mut websocket| async move {
             let msg = websocket.next().await.expect("item").expect("ok");
             let _ = msg.close_frame().expect("close frame");
         })
     });
 
-    let client = warp::test::ws().handshake(route).await.expect("handshake");
+    let client = wax::test::ws().handshake(route).await.expect("handshake");
     drop(client);
 }
 
@@ -115,7 +115,7 @@ async fn close_frame() {
 async fn send_ping() {
     let _ = pretty_env_logger::try_init();
 
-    let filter = warp::ws().map(|ws: warp::ws::Ws| {
+    let filter = wax::ws().map(|ws: wax::ws::Ws| {
         ws.on_upgrade(|mut websocket| {
             async move {
                 websocket.send(Message::ping("srv")).await.unwrap();
@@ -127,7 +127,7 @@ async fn send_ping() {
         })
     });
 
-    let mut client = warp::test::ws().handshake(filter).await.expect("handshake");
+    let mut client = wax::test::ws().handshake(filter).await.expect("handshake");
 
     let msg = client.recv().await.expect("recv");
     assert!(msg.is_ping());
@@ -140,7 +140,7 @@ async fn send_ping() {
 async fn echo_pings() {
     let _ = pretty_env_logger::try_init();
 
-    let mut client = warp::test::ws()
+    let mut client = wax::test::ws()
         .handshake(ws_echo())
         .await
         .expect("handshake");
@@ -168,7 +168,7 @@ async fn echo_pings() {
 async fn pongs_only() {
     let _ = pretty_env_logger::try_init();
 
-    let mut client = warp::test::ws()
+    let mut client = wax::test::ws()
         .handshake(ws_echo())
         .await
         .expect("handshake");
@@ -191,9 +191,9 @@ async fn closed() {
     let _ = pretty_env_logger::try_init();
 
     let route =
-        warp::ws().map(|ws: warp::ws::Ws| ws.on_upgrade(|websocket| websocket.close().map(|_| ())));
+        wax::ws().map(|ws: wax::ws::Ws| ws.on_upgrade(|websocket| websocket.close().map(|_| ())));
 
-    let mut client = warp::test::ws().handshake(route).await.expect("handshake");
+    let mut client = wax::test::ws().handshake(route).await.expect("handshake");
 
     client.recv_closed().await.expect("closed");
 }
@@ -202,7 +202,7 @@ async fn closed() {
 async fn limit_message_size() {
     let _ = pretty_env_logger::try_init();
 
-    let echo = warp::ws().map(|ws: warp::ws::Ws| {
+    let echo = wax::ws().map(|ws: wax::ws::Ws| {
         ws.max_message_size(1024).on_upgrade(|websocket| {
             // Just echo all messages back...
             let (tx, rx) = websocket.split();
@@ -215,10 +215,10 @@ async fn limit_message_size() {
             })
         })
     });
-    let mut client = warp::test::ws().handshake(echo).await.expect("handshake");
+    let mut client = wax::test::ws().handshake(echo).await.expect("handshake");
 
-    client.send(warp::ws::Message::binary(vec![0; 1025])).await;
-    client.send_text("hello warp").await;
+    client.send(wax::ws::Message::binary(vec![0; 1025])).await;
+    client.send_text("hello wax").await;
     assert!(client.recv().await.is_err());
 }
 
@@ -226,7 +226,7 @@ async fn limit_message_size() {
 async fn limit_frame_size() {
     let _ = pretty_env_logger::try_init();
 
-    let echo = warp::ws().map(|ws: warp::ws::Ws| {
+    let echo = wax::ws().map(|ws: wax::ws::Ws| {
         ws.max_frame_size(1024).on_upgrade(|websocket| {
             // Just echo all messages back...
             let (tx, rx) = websocket.split();
@@ -239,10 +239,10 @@ async fn limit_frame_size() {
             })
         })
     });
-    let mut client = warp::test::ws().handshake(echo).await.expect("handshake");
+    let mut client = wax::test::ws().handshake(echo).await.expect("handshake");
 
-    client.send(warp::ws::Message::binary(vec![0; 1025])).await;
-    client.send_text("hello warp").await;
+    client.send(wax::ws::Message::binary(vec![0; 1025])).await;
+    client.send_text("hello wax").await;
     assert!(client.recv().await.is_err());
 }
 
@@ -253,10 +253,10 @@ struct MyQuery {
 
 #[tokio::test]
 async fn ws_with_query() {
-    let ws_filter = warp::path("my-ws")
-        .and(warp::query::<MyQuery>())
-        .and(warp::ws())
-        .map(|query: MyQuery, ws: warp::ws::Ws| {
+    let ws_filter = wax::domain_is("my-ws")
+        .and(wax::query::<MyQuery>())
+        .and(wax::ws())
+        .map(|query: MyQuery, ws: wax::ws::Ws| {
             assert_eq!(query.hello, "world");
 
             ws.on_upgrade(|websocket| {
@@ -267,7 +267,7 @@ async fn ws_with_query() {
             })
         });
 
-    warp::test::ws()
+    wax::test::ws()
         .path("/my-ws?hello=world")
         .handshake(ws_filter)
         .await
@@ -275,8 +275,8 @@ async fn ws_with_query() {
 }
 
 // Websocket filter that echoes all messages back.
-fn ws_echo() -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Copy {
-    warp::ws().map(|ws: warp::ws::Ws| {
+fn ws_echo() -> impl Filter<Extract = (impl wax::Reply,), Error = wax::Rejection> + Copy {
+    wax::ws().map(|ws: wax::ws::Ws| {
         ws.on_upgrade(|websocket| {
             // Just echo all messages back...
             let (tx, rx) = websocket.split();

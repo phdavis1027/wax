@@ -7,10 +7,10 @@ async fn main() {
 
     pretty_env_logger::init();
 
-    let socket = "/tmp/warp.sock";
+    let socket = "/tmp/wax.sock";
 
     let listener = UnixListener::bind(socket).unwrap();
-    warp::serve(warp::fs::dir("examples/dir"))
+    wax::serve(wax::fs::dir("examples/dir"))
         .incoming(listener)
         .graceful(async { tokio::signal::ctrl_c().await.unwrap() })
         .run()

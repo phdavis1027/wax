@@ -4,7 +4,7 @@
 //! match the request `Method`, and if not matched, will reject the request
 //! with a `405 Method Not Allowed`.
 //!
-//! There is also [`warp::method()`](method), which never rejects
+//! There is also [`wax::method()`](method), which never rejects
 //! a request, and just extracts the method to be used in your filter chains.
 use futures_util::future;
 use http::Method;
@@ -18,9 +18,9 @@ use std::convert::Infallible;
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let get_only = warp::get().map(warp::reply);
+/// let get_only = wax::get().map(wax::reply);
 /// ```
 pub fn get() -> impl Filter<Extract = (), Error = Rejection> + Copy {
     method_is(|| &Method::GET)
@@ -31,9 +31,9 @@ pub fn get() -> impl Filter<Extract = (), Error = Rejection> + Copy {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let post_only = warp::post().map(warp::reply);
+/// let post_only = wax::post().map(wax::reply);
 /// ```
 pub fn post() -> impl Filter<Extract = (), Error = Rejection> + Copy {
     method_is(|| &Method::POST)
@@ -44,9 +44,9 @@ pub fn post() -> impl Filter<Extract = (), Error = Rejection> + Copy {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let put_only = warp::put().map(warp::reply);
+/// let put_only = wax::put().map(wax::reply);
 /// ```
 pub fn put() -> impl Filter<Extract = (), Error = Rejection> + Copy {
     method_is(|| &Method::PUT)
@@ -57,9 +57,9 @@ pub fn put() -> impl Filter<Extract = (), Error = Rejection> + Copy {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let delete_only = warp::delete().map(warp::reply);
+/// let delete_only = wax::delete().map(wax::reply);
 /// ```
 pub fn delete() -> impl Filter<Extract = (), Error = Rejection> + Copy {
     method_is(|| &Method::DELETE)
@@ -70,9 +70,9 @@ pub fn delete() -> impl Filter<Extract = (), Error = Rejection> + Copy {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let head_only = warp::head().map(warp::reply);
+/// let head_only = wax::head().map(wax::reply);
 /// ```
 pub fn head() -> impl Filter<Extract = (), Error = Rejection> + Copy {
     method_is(|| &Method::HEAD)
@@ -83,9 +83,9 @@ pub fn head() -> impl Filter<Extract = (), Error = Rejection> + Copy {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let options_only = warp::options().map(warp::reply);
+/// let options_only = wax::options().map(wax::reply);
 /// ```
 pub fn options() -> impl Filter<Extract = (), Error = Rejection> + Copy {
     method_is(|| &Method::OPTIONS)
@@ -96,9 +96,9 @@ pub fn options() -> impl Filter<Extract = (), Error = Rejection> + Copy {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let patch_only = warp::patch().map(warp::reply);
+/// let patch_only = wax::patch().map(wax::reply);
 /// ```
 pub fn patch() -> impl Filter<Extract = (), Error = Rejection> + Copy {
     method_is(|| &Method::PATCH)
@@ -111,9 +111,9 @@ pub fn patch() -> impl Filter<Extract = (), Error = Rejection> + Copy {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let route = warp::method()
+/// let route = wax::method()
 ///     .map(|method| {
 ///         format!("You sent a {} request!", method)
 ///     });

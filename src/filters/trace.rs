@@ -15,7 +15,6 @@ use http::header;
 use crate::filter::{Filter, WrapSealed};
 use crate::reject::IsReject;
 use crate::reply::Reply;
-use crate::route::Route;
 
 use self::internal::WithTrace;
 
@@ -27,11 +26,11 @@ use self::internal::WithTrace;
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let route = warp::any()
-///     .map(warp::reply)
-///     .with(warp::trace::request());
+/// let route = wax::any()
+///     .map(wax::reply)
+///     .with(wax::trace::request());
 /// ```
 ///
 /// [`Span`]: https://docs.rs/tracing/latest/tracing/#spans
@@ -67,11 +66,11 @@ pub fn request() -> Trace<impl Fn(Info<'_>) -> Span + Clone> {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let route = warp::any()
-///     .map(warp::reply)
-///     .with(warp::trace(|info| {
+/// let route = wax::any()
+///     .map(wax::reply)
+///     .with(wax::trace(|info| {
 ///         // Create a span using tracing macros
 ///         tracing::info_span!(
 ///             "request",
@@ -98,15 +97,15 @@ where
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let hello = warp::path("hello")
-///     .map(warp::reply)
-///     .with(warp::trace::named("hello"));
+/// let hello = wax::path("hello")
+///     .map(wax::reply)
+///     .with(wax::trace::named("hello"));
 ///
-/// let goodbye = warp::path("goodbye")
-///     .map(warp::reply)
-///     .with(warp::trace::named("goodbye"));
+/// let goodbye = wax::path("goodbye")
+///     .map(wax::reply)
+///     .with(wax::trace::named("goodbye"));
 ///
 /// let routes = hello.or(goodbye);
 /// ```
@@ -130,7 +129,7 @@ pub struct Trace<F> {
 /// Information about the request/response that can be used to prepare log lines.
 #[allow(missing_debug_implementations)]
 pub struct Info<'a> {
-    route: &'a Route,
+    route: &'a FilteredStanza,
 }
 
 impl<FN, F> WrapSealed<F> for Trace<FN>
@@ -201,10 +200,10 @@ mod internal {
 
     use super::{Info, Trace};
     use crate::filter::{Filter, FilterBase, Internal};
+    use crate::filtered_stanza;
     use crate::reject::IsReject;
     use crate::reply::Reply;
     use crate::reply::Response;
-    use crate::route;
 
     #[allow(missing_debug_implementations)]
     pub struct Traced(pub(super) Response);
@@ -234,20 +233,20 @@ mod internal {
 
         if status.is_success() {
             tracing::info!(
-                target: "warp::filters::trace",
+                target: "wax::filters::trace",
                 status = status.as_u16(),
                 "finished processing with success"
             );
         } else if status.is_server_error() {
             tracing::error!(
-                target: "warp::filters::trace",
+                target: "wax::filters::trace",
                 status = status.as_u16(),
                 error = ?error,
                 "unable to process request (internal error)"
             );
         } else if status.is_client_error() {
             tracing::warn!(
-                target: "warp::filters::trace",
+                target: "wax::filters::trace",
                 status = status.as_u16(),
                 error = ?error,
                 "unable to serve request (client error)"
@@ -255,7 +254,7 @@ mod internal {
         } else {
             // Either informational or redirect
             tracing::info!(
-                target: "warp::filters::trace",
+                target: "wax::filters::trace",
                 status = status.as_u16(),
                 error = ?error,
                     "finished processing with status"
@@ -284,10 +283,10 @@ mod internal {
         >;
 
         fn filter(&self, _: Internal) -> Self::Future {
-            let span = route::with(|route| (self.trace.func)(Info { route }));
+            let span = filtered_stanza::with(|route| (self.trace.func)(Info { route }));
             let _entered = span.enter();
 
-            tracing::info!(target: "warp::filters::trace", "processing request");
+            tracing::info!(target: "wax::filters::trace", "processing request");
             self.filter
                 .filter(Internal)
                 .map_ok(convert_reply as fn(F::Extract) -> Self::Extract)

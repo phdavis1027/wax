@@ -1,6 +1,6 @@
 #![deny(warnings)]
 use std::net::SocketAddr;
-use warp::Filter;
+use wax::Filter;
 
 /// Create a server that requires header conditions:
 ///
@@ -14,14 +14,14 @@ async fn main() {
 
     // For this example, we assume no DNS was used,
     // so the Host header should be an address.
-    let host = warp::header::<SocketAddr>("host");
+    let host = wax::header::<SocketAddr>("host");
 
     // Match when we get `accept: */*` exactly.
-    let accept_stars = warp::header::exact("accept", "*/*");
+    let accept_stars = wax::header::exact("accept", "*/*");
 
     let routes = host
         .and(accept_stars)
         .map(|addr| format!("accepting stars on {}", addr));
 
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    wax::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }

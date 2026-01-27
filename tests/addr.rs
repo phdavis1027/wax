@@ -5,18 +5,18 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 #[tokio::test]
 async fn remote_addr_missing() {
-    let extract_remote_addr = warp::addr::remote();
+    let extract_remote_addr = wax::addr::remote();
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.filter(&extract_remote_addr).await.unwrap();
     assert_eq!(resp, None)
 }
 
 #[tokio::test]
 async fn remote_addr_present() {
-    let extract_remote_addr = warp::addr::remote();
+    let extract_remote_addr = wax::addr::remote();
 
-    let req = warp::test::request().remote_addr("1.2.3.4:5678".parse().unwrap());
+    let req = wax::test::request().remote_addr("1.2.3.4:5678".parse().unwrap());
     let resp = req.filter(&extract_remote_addr).await.unwrap();
     assert_eq!(
         resp,

@@ -1,16 +1,16 @@
 #![deny(warnings)]
 
 use futures_util::{FutureExt, StreamExt};
-use warp::Filter;
+use wax::Filter;
 
 #[tokio::main]
 async fn main() {
     pretty_env_logger::init();
 
-    let routes = warp::path("echo")
+    let routes = wax::domain_is("echo")
         // The `ws()` filter will prepare the Websocket handshake.
-        .and(warp::ws())
-        .map(|ws: warp::ws::Ws| {
+        .and(wax::ws())
+        .map(|ws: wax::ws::Ws| {
             // And then our closure will be called when it completes...
             ws.on_upgrade(|websocket| {
                 // Just echo all messages back...
@@ -23,5 +23,5 @@ async fn main() {
             })
         });
 
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    wax::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }

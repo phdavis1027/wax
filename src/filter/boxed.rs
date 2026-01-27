@@ -18,11 +18,11 @@ use crate::reject::Rejection;
 /// # Examples
 ///
 /// ```
-/// use warp::{Filter, filters::BoxedFilter, Reply};
+/// use wax::{Filter, filters::BoxedFilter, Reply};
 ///
 /// pub fn assets_filter() -> BoxedFilter<(impl Reply,)> {
-///     warp::path("assets")
-///         .and(warp::fs::dir("./assets"))
+///     wax::path("assets")
+///         .and(wax::fs::dir("./assets"))
 ///         .boxed()
 /// }
 /// ```

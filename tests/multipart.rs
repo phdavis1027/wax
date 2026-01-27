@@ -1,7 +1,7 @@
 #![deny(warnings)]
 use bytes::BufMut;
 use futures_util::{TryFutureExt, TryStreamExt};
-use warp::{multipart, Filter};
+use wax::{multipart, Filter};
 
 #[tokio::test]
 async fn form_fields() {
@@ -10,7 +10,7 @@ async fn form_fields() {
     let route = multipart::form().and_then(|form: multipart::FormData| {
         async {
             // Collect the fields into (name, value): (String, Vec<u8>)
-            let part: Result<Vec<(String, Vec<u8>)>, warp::Rejection> = form
+            let part: Result<Vec<(String, Vec<u8>)>, wax::Rejection> = form
                 .and_then(|part| {
                     let name = part.name().to_string();
                     let value = part.stream().try_fold(Vec::new(), |mut vec, data| {
@@ -39,7 +39,7 @@ async fn form_fields() {
         boundary
     );
 
-    let req = warp::test::request()
+    let req = wax::test::request()
         .method("POST")
         .header("content-length", body.len())
         .header(
@@ -58,11 +58,11 @@ async fn max_length_is_enforced() {
     let _ = pretty_env_logger::try_init();
 
     let route = multipart::form()
-        .and_then(|_: multipart::FormData| async { Ok::<(), warp::Rejection>(()) });
+        .and_then(|_: multipart::FormData| async { Ok::<(), wax::Rejection>(()) });
 
     let boundary = "--abcdef1234--";
 
-    let req = warp::test::request()
+    let req = wax::test::request()
         .method("POST")
         // Note no content-length header
         .header("transfer-encoding", "chunked")
@@ -83,11 +83,11 @@ async fn max_length_can_be_disabled() {
 
     let route = multipart::form()
         .max_length(None)
-        .and_then(|_: multipart::FormData| async { Ok::<(), warp::Rejection>(()) });
+        .and_then(|_: multipart::FormData| async { Ok::<(), wax::Rejection>(()) });
 
     let boundary = "--abcdef1234--";
 
-    let req = warp::test::request()
+    let req = wax::test::request()
         .method("POST")
         .header("transfer-encoding", "chunked")
         .header(

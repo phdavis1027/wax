@@ -1,21 +1,21 @@
 #![deny(warnings)]
 
-use warp::Filter;
+use wax::Filter;
 
 #[tokio::main]
 async fn main() {
     pretty_env_logger::init();
 
-    let readme = warp::get()
-        .and(warp::path::end())
-        .and(warp::fs::file("./README.md"));
+    let readme = wax::get()
+        .and(wax::path::end())
+        .and(wax::fs::file("./README.md"));
 
     // dir already requires GET...
-    let examples = warp::path("ex").and(warp::fs::dir("./examples/"));
+    let examples = wax::domain_is("ex").and(wax::fs::dir("./examples/"));
 
     // GET / => README.md
     // GET /ex/... => ./examples/..
     let routes = readme.or(examples);
 
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    wax::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }

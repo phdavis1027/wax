@@ -4,21 +4,21 @@ use std::sync::Arc;
 use handlebars::Handlebars;
 use serde::Serialize;
 use serde_json::json;
-use warp::Filter;
+use wax::Filter;
 
 struct WithTemplate<T: Serialize> {
     name: &'static str,
     value: T,
 }
 
-fn render<T>(template: WithTemplate<T>, hbs: Arc<Handlebars<'_>>) -> impl warp::Reply
+fn render<T>(template: WithTemplate<T>, hbs: Arc<Handlebars<'_>>) -> impl wax::Reply
 where
     T: Serialize,
 {
     let render = hbs
         .render(template.name, &template.value)
         .unwrap_or_else(|err| err.to_string());
-    warp::reply::html(render)
+    wax::reply::html(render)
 }
 
 #[tokio::main]
@@ -46,13 +46,13 @@ async fn main() {
     let handlebars = move |with_template| render(with_template, hb.clone());
 
     //GET /
-    let route = warp::get()
-        .and(warp::path::end())
+    let route = wax::get()
+        .and(wax::path::end())
         .map(|| WithTemplate {
             name: "template.html",
             value: json!({"user" : "Warp"}),
         })
         .map(handlebars);
 
-    warp::serve(route).run(([127, 0, 0, 1], 3030)).await;
+    wax::serve(route).run(([127, 0, 0, 1], 3030)).await;
 }

@@ -56,12 +56,12 @@ pub struct Compression<F> {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let route = warp::get()
-///     .and(warp::path::end())
-///     .and(warp::fs::file("./README.md"))
-///     .with(warp::compression::gzip());
+/// let route = wax::get()
+///     .and(wax::path::end())
+///     .and(wax::fs::file("./README.md"))
+///     .with(wax::compression::gzip());
 /// ```
 #[cfg(feature = "compression-gzip")]
 pub fn gzip() -> Compression<impl Fn(CompressionProps) -> Response + Copy> {
@@ -85,12 +85,12 @@ pub fn gzip() -> Compression<impl Fn(CompressionProps) -> Response + Copy> {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let route = warp::get()
-///     .and(warp::path::end())
-///     .and(warp::fs::file("./README.md"))
-///     .with(warp::compression::deflate());
+/// let route = wax::get()
+///     .and(wax::path::end())
+///     .and(wax::fs::file("./README.md"))
+///     .with(wax::compression::deflate());
 /// ```
 #[cfg(feature = "compression-gzip")]
 pub fn deflate() -> Compression<impl Fn(CompressionProps) -> Response + Copy> {
@@ -114,12 +114,12 @@ pub fn deflate() -> Compression<impl Fn(CompressionProps) -> Response + Copy> {
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let route = warp::get()
-///     .and(warp::path::end())
-///     .and(warp::fs::file("./README.md"))
-///     .with(warp::compression::brotli());
+/// let route = wax::get()
+///     .and(wax::path::end())
+///     .and(wax::fs::file("./README.md"))
+///     .with(wax::compression::brotli());
 /// ```
 #[cfg(feature = "compression-brotli")]
 pub fn brotli() -> Compression<impl Fn(CompressionProps) -> Response + Copy> {

@@ -5,29 +5,29 @@ use std::error::Error;
 use std::num::NonZeroU16;
 
 use serde_derive::{Deserialize, Serialize};
-use warp::http::StatusCode;
-use warp::{reject, Filter, Rejection, Reply};
+use wax::http::StatusCode;
+use wax::{reject, Filter, Rejection, Reply};
 
 /// Rejections represent cases where a filter should not continue processing
 /// the request, but a different filter *could* process it.
 #[tokio::main]
 async fn main() {
-    let math = warp::path!("math" / u16);
+    let math = wax::path!("math" / u16);
     let div_with_header = math
-        .and(warp::get())
+        .and(wax::get())
         .and(div_by())
         .map(|num: u16, denom: NonZeroU16| {
-            warp::reply::json(&Math {
+            wax::reply::json(&Math {
                 op: format!("{} / {}", num, denom),
                 output: num / denom.get(),
             })
         });
 
     let div_with_body =
-        math.and(warp::post())
-            .and(warp::body::json())
+        math.and(wax::post())
+            .and(wax::body::json())
             .map(|num: u16, body: DenomRequest| {
-                warp::reply::json(&Math {
+                wax::reply::json(&Math {
                     op: format!("{} / {}", num, body.denom),
                     output: num / body.denom.get(),
                 })
@@ -35,12 +35,12 @@ async fn main() {
 
     let routes = div_with_header.or(div_with_body).recover(handle_rejection);
 
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    wax::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }
 
 /// Extract a denominator from a "div-by" header, or reject with DivideByZero.
 fn div_by() -> impl Filter<Extract = (NonZeroU16,), Error = Rejection> + Copy {
-    warp::header::<u16>("div-by").and_then(|n: u16| async move {
+    wax::header::<u16>("div-by").and_then(|n: u16| async move {
         if let Some(denom) = NonZeroU16::new(n) {
             Ok(denom)
         } else {
@@ -87,7 +87,7 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
     } else if let Some(DivideByZero) = err.find() {
         code = StatusCode::BAD_REQUEST;
         message = "DIVIDE_BY_ZERO";
-    } else if let Some(e) = err.find::<warp::filters::body::BodyDeserializeError>() {
+    } else if let Some(e) = err.find::<wax::filters::body::BodyDeserializeError>() {
         // This error happens if the body could not be deserialized correctly
         // We can use the cause to analyze the error and customize the error message
         message = match e.source() {
@@ -101,7 +101,7 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
             None => "BAD_REQUEST",
         };
         code = StatusCode::BAD_REQUEST;
-    } else if let Some(_) = err.find::<warp::reject::MethodNotAllowed>() {
+    } else if let Some(_) = err.find::<wax::reject::MethodNotAllowed>() {
         // We can handle a specific error, here METHOD_NOT_ALLOWED,
         // and render it however we want
         code = StatusCode::METHOD_NOT_ALLOWED;
@@ -113,10 +113,10 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
         message = "UNHANDLED_REJECTION";
     }
 
-    let json = warp::reply::json(&ErrorMessage {
+    let json = wax::reply::json(&ErrorMessage {
         code: code.as_u16(),
         message: message.into(),
     });
 
-    Ok(warp::reply::with_status(json, code))
+    Ok(wax::reply::with_status(json, code))
 }

@@ -1,20 +1,20 @@
 #![deny(warnings)]
-use warp::Filter;
+use wax::Filter;
 
 #[tokio::test]
 async fn exact() {
     let _ = pretty_env_logger::try_init();
 
-    let host = warp::header::exact("host", "localhost");
+    let host = wax::header::exact("host", "localhost");
 
-    let req = warp::test::request().header("host", "localhost");
+    let req = wax::test::request().header("host", "localhost");
 
     assert!(req.matches(&host).await);
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     assert!(!req.matches(&host).await, "header missing");
 
-    let req = warp::test::request().header("host", "hyper.rs");
+    let req = wax::test::request().header("host", "hyper.rs");
     assert!(!req.matches(&host).await, "header value different");
 }
 
@@ -22,9 +22,9 @@ async fn exact() {
 async fn exact_rejections() {
     let _ = pretty_env_logger::try_init();
 
-    let host = warp::header::exact("host", "localhost").map(warp::reply);
+    let host = wax::header::exact("host", "localhost").map(wax::reply);
 
-    let res = warp::test::request()
+    let res = wax::test::request()
         .header("host", "nope")
         .reply(&host)
         .await;
@@ -32,7 +32,7 @@ async fn exact_rejections() {
     assert_eq!(res.status(), 400);
     assert_eq!(res.body(), "Invalid request header \"host\"");
 
-    let res = warp::test::request()
+    let res = wax::test::request()
         .header("not-even-a-host", "localhost")
         .reply(&host)
         .await;
@@ -45,15 +45,15 @@ async fn exact_rejections() {
 async fn optional() {
     let _ = pretty_env_logger::try_init();
 
-    let con_len = warp::header::optional::<u64>("content-length");
+    let con_len = wax::header::optional::<u64>("content-length");
 
-    let val = warp::test::request()
+    let val = wax::test::request()
         .filter(&con_len)
         .await
         .expect("missing header matches");
     assert_eq!(val, None);
 
-    let val = warp::test::request()
+    let val = wax::test::request()
         .header("content-length", "5")
         .filter(&con_len)
         .await
@@ -62,7 +62,7 @@ async fn optional() {
     assert_eq!(val, Some(5));
 
     assert!(
-        !warp::test::request()
+        !wax::test::request()
             .header("content-length", "boom")
             .matches(&con_len)
             .await,

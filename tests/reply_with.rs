@@ -1,21 +1,21 @@
 #![deny(warnings)]
-use warp::http::header::{HeaderMap, HeaderValue};
-use warp::Filter;
+use wax::http::header::{HeaderMap, HeaderValue};
+use wax::Filter;
 
 #[tokio::test]
 async fn header() {
-    let header = warp::reply::with::header("foo", "bar");
+    let header = wax::reply::with::header("foo", "bar");
 
-    let no_header = warp::any().map(warp::reply).with(&header);
+    let no_header = wax::any().map(wax::reply).with(&header);
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.reply(&no_header).await;
     assert_eq!(resp.headers()["foo"], "bar");
 
-    let prev_header = warp::reply::with::header("foo", "sean");
-    let yes_header = warp::any().map(warp::reply).with(prev_header).with(header);
+    let prev_header = wax::reply::with::header("foo", "sean");
+    let yes_header = wax::any().map(wax::reply).with(prev_header).with(header);
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.reply(&yes_header).await;
     assert_eq!(resp.headers()["foo"], "bar", "replaces header");
 }
@@ -23,41 +23,41 @@ async fn header() {
 #[tokio::test]
 async fn headers() {
     let mut headers = HeaderMap::new();
-    headers.insert("server", HeaderValue::from_static("warp"));
+    headers.insert("server", HeaderValue::from_static("wax"));
     headers.insert("foo", HeaderValue::from_static("bar"));
 
-    let headers = warp::reply::with::headers(headers);
+    let headers = wax::reply::with::headers(headers);
 
-    let no_header = warp::any().map(warp::reply).with(&headers);
+    let no_header = wax::any().map(wax::reply).with(&headers);
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.reply(&no_header).await;
     assert_eq!(resp.headers()["foo"], "bar");
-    assert_eq!(resp.headers()["server"], "warp");
+    assert_eq!(resp.headers()["server"], "wax");
 
-    let prev_header = warp::reply::with::header("foo", "sean");
-    let yes_header = warp::any().map(warp::reply).with(prev_header).with(headers);
+    let prev_header = wax::reply::with::header("foo", "sean");
+    let yes_header = wax::any().map(wax::reply).with(prev_header).with(headers);
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.reply(&yes_header).await;
     assert_eq!(resp.headers()["foo"], "bar", "replaces header");
 }
 
 #[tokio::test]
 async fn default_header() {
-    let def_header = warp::reply::with::default_header("foo", "bar");
+    let def_header = wax::reply::with::default_header("foo", "bar");
 
-    let no_header = warp::any().map(warp::reply).with(&def_header);
+    let no_header = wax::any().map(wax::reply).with(&def_header);
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.reply(&no_header).await;
 
     assert_eq!(resp.headers()["foo"], "bar");
 
-    let header = warp::reply::with::header("foo", "sean");
-    let yes_header = warp::any().map(warp::reply).with(header).with(def_header);
+    let header = wax::reply::with::header("foo", "sean");
+    let yes_header = wax::any().map(wax::reply).with(header).with(def_header);
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.reply(&yes_header).await;
 
     assert_eq!(resp.headers()["foo"], "sean", "doesn't replace header");

@@ -1,12 +1,12 @@
 use bytes::BufMut;
 use futures_util::TryStreamExt;
-use warp::multipart::FormData;
-use warp::Filter;
+use wax::multipart::FormData;
+use wax::Filter;
 
 #[tokio::main]
 async fn main() {
     // Running curl -F file=@.gitignore 'localhost:3030/' should print [("file", ".gitignore", "\n/target\n**/*.rs.bk\nCargo.lock\n.idea/\nwarp.iml\n")]
-    let route = warp::multipart::form().and_then(|form: FormData| async move {
+    let route = wax::multipart::form().and_then(|form: FormData| async move {
         let field_names: Vec<_> = form
             .and_then(|mut field| async move {
                 let mut bytes: Vec<u8> = Vec::new();
@@ -26,7 +26,7 @@ async fn main() {
             .await
             .unwrap();
 
-        Ok::<_, warp::Rejection>(format!("{:?}", field_names))
+        Ok::<_, wax::Rejection>(format!("{:?}", field_names))
     });
-    warp::serve(route).run(([127, 0, 0, 1], 3030)).await;
+    wax::serve(route).run(([127, 0, 0, 1], 3030)).await;
 }

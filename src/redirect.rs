@@ -16,11 +16,11 @@ use crate::reply::{self, Reply};
 /// # Example
 ///
 /// ```
-/// use warp::{http::Uri, Filter};
+/// use wax::{http::Uri, Filter};
 ///
-/// let route = warp::path("v1")
+/// let route = wax::path("v1")
 ///     .map(|| {
-///         warp::redirect(Uri::from_static("/v2"))
+///         wax::redirect(Uri::from_static("/v2"))
 ///     });
 /// ```
 pub fn redirect(uri: impl AsLocation) -> impl Reply {
@@ -39,11 +39,11 @@ pub fn redirect(uri: impl AsLocation) -> impl Reply {
 /// # Example
 ///
 /// ```
-/// use warp::{http::Uri, Filter};
+/// use wax::{http::Uri, Filter};
 ///
-/// let route = warp::path("v1")
+/// let route = wax::path("v1")
 ///     .map(|| {
-///         warp::redirect::found(Uri::from_static("/v2"))
+///         wax::redirect::found(Uri::from_static("/v2"))
 ///     });
 /// ```
 pub fn found(uri: impl AsLocation) -> impl Reply {
@@ -60,11 +60,11 @@ pub fn found(uri: impl AsLocation) -> impl Reply {
 /// # Example
 ///
 /// ```
-/// use warp::{http::Uri, Filter};
+/// use wax::{http::Uri, Filter};
 ///
-/// let route = warp::path("v1")
+/// let route = wax::path("v1")
 ///     .map(|| {
-///         warp::redirect::see_other(Uri::from_static("/v2"))
+///         wax::redirect::see_other(Uri::from_static("/v2"))
 ///     });
 /// ```
 pub fn see_other(uri: impl AsLocation) -> impl Reply {
@@ -82,11 +82,11 @@ pub fn see_other(uri: impl AsLocation) -> impl Reply {
 /// # Example
 ///
 /// ```
-/// use warp::{http::Uri, Filter};
+/// use wax::{http::Uri, Filter};
 ///
-/// let route = warp::path("v1")
+/// let route = wax::path("v1")
 ///     .map(|| {
-///         warp::redirect::temporary(Uri::from_static("/v2"))
+///         wax::redirect::temporary(Uri::from_static("/v2"))
 ///     });
 /// ```
 pub fn temporary(uri: impl AsLocation) -> impl Reply {
@@ -108,11 +108,11 @@ pub fn temporary(uri: impl AsLocation) -> impl Reply {
 /// # Example
 ///
 /// ```
-/// use warp::{http::Uri, Filter};
+/// use wax::{http::Uri, Filter};
 ///
-/// let route = warp::path("v1")
+/// let route = wax::path("v1")
 ///     .map(|| {
-///         warp::redirect::permanent(Uri::from_static("/v2"))
+///         wax::redirect::permanent(Uri::from_static("/v2"))
 ///     });
 /// ```
 pub fn permanent(uri: impl AsLocation) -> impl Reply {
@@ -130,7 +130,7 @@ mod sealed {
     /// Trait for redirect locations. Currently only a `Uri` can be used in
     /// redirect.
     /// This sealed trait exists to allow adding possibly new impls so other
-    /// arguments could be accepted, like maybe just `warp::redirect("/v2")`.
+    /// arguments could be accepted, like maybe just `wax::redirect("/v2")`.
     pub trait AsLocation: Sealed {}
     pub trait Sealed {
         fn header_value(self) -> HeaderValue;

@@ -1,6 +1,6 @@
 # Examples
 
-Welcome to the examples! These show off `warp`'s functionality and explain how to use it.
+Welcome to the examples! These show off `wax`'s functionality and explain how to use it.
 
 ## Getting Started
 
@@ -19,7 +19,7 @@ Open another terminal and run:
 Hello, World!%
 ```
 
-Congratulations, you have just run your first warp service!
+Congratulations, you have just run your first wax service!
 
 You can run other examples with `cargo run --example [example name]`:
 
@@ -41,7 +41,7 @@ You can run other examples with `cargo run --example [example name]`:
 
 ### Websockets
 
-Hooray! `warp` also includes built-in support for WebSockets
+Hooray! `wax` also includes built-in support for WebSockets
 
 - [`websockets.rs`](./websockets.rs) - Basic handling of a WebSocket upgrade
 - [`websockets_chat.rs`](./websockets_chat.rs) - Full WebSocket app

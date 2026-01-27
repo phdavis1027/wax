@@ -1,24 +1,24 @@
 #![deny(warnings)]
-use warp::{http::Method, Filter};
+use wax::{http::Method, Filter};
 
 #[tokio::test]
 async fn allow_methods() {
-    let cors = warp::cors().allow_methods(&[Method::GET, Method::POST, Method::DELETE]);
+    let cors = wax::cors().allow_methods(&[Method::GET, Method::POST, Method::DELETE]);
 
-    let route = warp::any().map(warp::reply).with(cors);
+    let route = wax::any().map(wax::reply).with(cors);
 
-    let res = warp::test::request()
+    let res = wax::test::request()
         .method("OPTIONS")
-        .header("origin", "warp")
+        .header("origin", "wax")
         .header("access-control-request-method", "DELETE")
         .reply(&route)
         .await;
 
     assert_eq!(res.status(), 200);
 
-    let res = warp::test::request()
+    let res = wax::test::request()
         .method("OPTIONS")
-        .header("origin", "warp")
+        .header("origin", "wax")
         .header("access-control-request-method", "PUT")
         .reply(&route)
         .await;
@@ -28,23 +28,23 @@ async fn allow_methods() {
 
 #[tokio::test]
 async fn origin_not_allowed() {
-    let cors = warp::cors()
+    let cors = wax::cors()
         .allow_methods(&[Method::DELETE])
         .allow_origin("https://hyper.rs");
 
-    let route = warp::any().map(warp::reply).with(cors);
+    let route = wax::any().map(wax::reply).with(cors);
 
-    let res = warp::test::request()
+    let res = wax::test::request()
         .method("OPTIONS")
-        .header("origin", "https://warp.rs")
+        .header("origin", "https://wax.rs")
         .header("access-control-request-method", "DELETE")
         .reply(&route)
         .await;
 
     assert_eq!(res.status(), 403);
 
-    let res = warp::test::request()
-        .header("origin", "https://warp.rs")
+    let res = wax::test::request()
+        .header("origin", "https://wax.rs")
         .header("access-control-request-method", "DELETE")
         .reply(&route)
         .await;
@@ -54,15 +54,15 @@ async fn origin_not_allowed() {
 
 #[tokio::test]
 async fn headers_not_exposed() {
-    let cors = warp::cors()
+    let cors = wax::cors()
         .allow_any_origin()
         .allow_methods(&[Method::GET]);
 
-    let route = warp::any().map(warp::reply).with(cors);
+    let route = wax::any().map(wax::reply).with(cors);
 
-    let res = warp::test::request()
+    let res = wax::test::request()
         .method("OPTIONS")
-        .header("origin", "https://warp.rs")
+        .header("origin", "https://wax.rs")
         .header("access-control-request-method", "GET")
         .reply(&route)
         .await;
@@ -72,9 +72,9 @@ async fn headers_not_exposed() {
         false
     );
 
-    let res = warp::test::request()
+    let res = wax::test::request()
         .method("GET")
-        .header("origin", "https://warp.rs")
+        .header("origin", "https://wax.rs")
         .reply(&route)
         .await;
 
@@ -86,15 +86,15 @@ async fn headers_not_exposed() {
 
 #[tokio::test]
 async fn headers_not_allowed() {
-    let cors = warp::cors()
+    let cors = wax::cors()
         .allow_methods(&[Method::DELETE])
         .allow_headers(vec!["x-foo"]);
 
-    let route = warp::any().map(warp::reply).with(cors);
+    let route = wax::any().map(wax::reply).with(cors);
 
-    let res = warp::test::request()
+    let res = wax::test::request()
         .method("OPTIONS")
-        .header("origin", "https://warp.rs")
+        .header("origin", "https://wax.rs")
         .header("access-control-request-headers", "x-bar")
         .header("access-control-request-method", "DELETE")
         .reply(&route)
@@ -105,7 +105,7 @@ async fn headers_not_allowed() {
 
 #[tokio::test]
 async fn success() {
-    let cors = warp::cors()
+    let cors = wax::cors()
         .allow_credentials(true)
         .allow_headers(vec!["x-foo", "x-bar"])
         .allow_methods(&[Method::POST, Method::DELETE])
@@ -113,10 +113,10 @@ async fn success() {
         .expose_headers(vec!["x-header2"])
         .max_age(30);
 
-    let route = warp::any().map(warp::reply).with(cors);
+    let route = wax::any().map(wax::reply).with(cors);
 
     // preflight
-    let res = warp::test::request()
+    let res = wax::test::request()
         .method("OPTIONS")
         .header("origin", "https://hyper.rs")
         .header("access-control-request-headers", "x-bar, x-foo")
@@ -143,7 +143,7 @@ async fn success() {
     );
 
     // cors request
-    let res = warp::test::request()
+    let res = wax::test::request()
         .method("DELETE")
         .header("origin", "https://hyper.rs")
         .header("x-foo", "hello")
@@ -164,18 +164,18 @@ async fn success() {
 
 #[tokio::test]
 async fn with_log() {
-    let cors = warp::cors()
+    let cors = wax::cors()
         .allow_any_origin()
         .allow_methods(&[Method::GET]);
 
-    let route = warp::any()
-        .map(warp::reply)
+    let route = wax::any()
+        .map(wax::reply)
         .with(cors)
-        .with(warp::log("cors test"));
+        .with(wax::log("cors test"));
 
-    let res = warp::test::request()
+    let res = wax::test::request()
         .method("OPTIONS")
-        .header("origin", "warp")
+        .header("origin", "wax")
         .header("access-control-request-method", "GET")
         .reply(&route)
         .await;

@@ -3,19 +3,19 @@
 use std::convert::Infallible;
 use std::str::FromStr;
 use std::time::Duration;
-use warp::Filter;
+use wax::Filter;
 
 #[tokio::main]
 async fn main() {
     // Match `/:Seconds`...
-    let routes = warp::path::param()
+    let routes = wax::path::param()
         // and_then create a `Future` that will simply wait N seconds...
         .and_then(sleepy);
 
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    wax::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }
 
-async fn sleepy(Seconds(seconds): Seconds) -> Result<impl warp::Reply, Infallible> {
+async fn sleepy(Seconds(seconds): Seconds) -> Result<impl wax::Reply, Infallible> {
     tokio::time::sleep(Duration::from_secs(seconds)).await;
     Ok(format!("I waited {} seconds!", seconds))
 }

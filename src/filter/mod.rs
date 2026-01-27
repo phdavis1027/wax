@@ -15,10 +15,11 @@ mod wrap;
 use std::future::Future;
 
 use futures_util::{future, TryFuture, TryFutureExt};
+use tokio_xmpp::Stanza;
 
-pub(crate) use crate::generic::{one, Combine, Either, Func, One, Tuple};
+use crate::filtered_stanza;
+pub(crate) use crate::generic::{Combine, Either, Func, Tuple};
 use crate::reject::{CombineRejection, IsReject, Rejection};
-use crate::route::{self, Route};
 
 pub(crate) use self::and::And;
 use self::and_then::AndThen;
@@ -104,11 +105,11 @@ pub trait Filter: FilterBase {
     /// # Example
     ///
     /// ```
-    /// use warp::Filter;
+    /// use wax::Filter;
     ///
     /// // Match `/hello/:name`...
-    /// warp::path("hello")
-    ///     .and(warp::path::param::<String>());
+    /// wax::path("hello")
+    ///     .and(wax::path::param::<String>());
     /// ```
     fn and<F>(self, other: F) -> And<Self, F>
     where
@@ -129,11 +130,11 @@ pub trait Filter: FilterBase {
     ///
     /// ```
     /// use std::net::SocketAddr;
-    /// use warp::Filter;
+    /// use wax::Filter;
     ///
     /// // Match either `/:u32` or `/:socketaddr`
-    /// warp::path::param::<u32>()
-    ///     .or(warp::path::param::<SocketAddr>());
+    /// wax::path::param::<u32>()
+    ///     .or(wax::path::param::<SocketAddr>());
     /// ```
     fn or<F>(self, other: F) -> Or<Self, F>
     where
@@ -153,10 +154,10 @@ pub trait Filter: FilterBase {
     /// # Example
     ///
     /// ```
-    /// use warp::Filter;
+    /// use wax::Filter;
     ///
     /// // Map `/:id`
-    /// warp::path::param().map(|id: u64| {
+    /// wax::path::param().map(|id: u64| {
     ///   format!("Hello #{}", id)
     /// });
     /// ```
@@ -207,10 +208,10 @@ pub trait Filter: FilterBase {
     /// # Example
     ///
     /// ```
-    /// use warp::Filter;
+    /// use wax::Filter;
     ///
     /// // Map `/:id`
-    /// warp::path::param().then(|id: u64| async move {
+    /// wax::path::param().then(|id: u64| async move {
     ///   format!("Hello #{}", id)
     /// });
     /// ```
@@ -241,14 +242,14 @@ pub trait Filter: FilterBase {
     /// # Example
     ///
     /// ```
-    /// use warp::Filter;
+    /// use wax::Filter;
     ///
     /// // Validate after `/:id`
-    /// warp::path::param().and_then(|id: u64| async move {
+    /// wax::path::param().and_then(|id: u64| async move {
     ///     if id != 0 {
     ///         Ok(format!("Hello #{}", id))
     ///     } else {
-    ///         Err(warp::reject::not_found())
+    ///         Err(wax::reject::not_found())
     ///     }
     /// });
     /// ```
@@ -288,7 +289,7 @@ pub trait Filter: FilterBase {
     /// This is useful for "customizing" rejections into new response types.
     /// See also the [rejections example][ex].
     ///
-    /// [ex]: https://github.com/seanmonstar/warp/blob/master/examples/rejections.rs
+    /// [ex]: https://github.com/seanmonstar/wax/blob/master/examples/rejections.rs
     fn recover<F>(self, fun: F) -> Recover<Self, F>
     where
         Self: Filter<Error = Rejection> + Sized,
@@ -314,10 +315,10 @@ pub trait Filter: FilterBase {
     ///
     /// ```rust
     /// use std::net::SocketAddr;
-    /// use warp::Filter;
+    /// use wax::Filter;
     ///
-    /// let client_ip = warp::header("x-real-ip")
-    ///     .or(warp::header("x-forwarded-for"))
+    /// let client_ip = wax::header("x-real-ip")
+    ///     .or(wax::header("x-forwarded-for"))
     ///     .unify()
     ///     .map(|ip: SocketAddr| {
     ///         // Get the IP from either header,
@@ -335,14 +336,14 @@ pub trait Filter: FilterBase {
     /// Convenience method to remove one layer of tupling.
     ///
     /// This is useful for when things like `map` don't return a new value,
-    /// but just `()`, since warp will wrap it up into a `((),)`.
+    /// but just `()`, since wax will wrap it up into a `((),)`.
     ///
     /// # Example
     ///
     /// ```
-    /// use warp::Filter;
+    /// use wax::Filter;
     ///
-    /// let route = warp::path::param()
+    /// let route = wax::path::param()
     ///     .map(|num: u64| {
     ///         println!("just logging: {}", num);
     ///         // returning "nothing"
@@ -350,14 +351,14 @@ pub trait Filter: FilterBase {
     ///     .untuple_one()
     ///     .map(|| {
     ///         println!("the ((),) was removed");
-    ///         warp::reply()
+    ///         wax::reply()
     ///     });
     /// ```
     ///
     /// ```
-    /// use warp::Filter;
+    /// use wax::Filter;
     ///
-    /// let route = warp::any()
+    /// let route = wax::any()
     ///     .map(|| {
     ///         // wanting to return a tuple
     ///         (true, 33)
@@ -383,13 +384,13 @@ pub trait Filter: FilterBase {
     /// # Example
     ///
     /// ```
-    /// use warp::Filter;
+    /// use wax::Filter;
     ///
-    /// let route = warp::any()
-    ///     .map(warp::reply);
+    /// let route = wax::any()
+    ///     .map(wax::reply);
     ///
     /// // Wrap the route with a log wrapper.
-    /// let route = route.with(warp::log("example"));
+    /// let route = route.with(wax::log("example"));
     /// ```
     fn with<W>(self, wrapper: W) -> W::Wrapped
     where
@@ -404,22 +405,22 @@ pub trait Filter: FilterBase {
     /// # Example
     ///
     /// ```
-    /// use warp::Filter;
+    /// use wax::Filter;
     ///
-    /// fn impl_reply() -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
-    ///     warp::any()
-    ///         .map(warp::reply)
+    /// fn impl_reply() -> wax::filters::BoxedFilter<(impl wax::Reply,)> {
+    ///     wax::any()
+    ///         .map(wax::reply)
     ///         .boxed()
     /// }
     ///
-    /// fn named_i32() -> warp::filters::BoxedFilter<(i32,)> {
-    ///     warp::path::param::<i32>()
+    /// fn named_i32() -> wax::filters::BoxedFilter<(i32,)> {
+    ///     wax::path::param::<i32>()
     ///         .boxed()
     /// }
     ///
-    /// fn named_and() -> warp::filters::BoxedFilter<(i32, String)> {
-    ///     warp::path::param::<i32>()
-    ///         .and(warp::header::<String>("host"))
+    /// fn named_and() -> wax::filters::BoxedFilter<(i32, String)> {
+    ///     wax::path::param::<i32>()
+    ///         .and(wax::header::<String>("host"))
     ///         .boxed()
     /// }
     /// ```
@@ -447,7 +448,7 @@ fn _assert_object_safe() {
 
 pub(crate) fn filter_fn<F, U>(func: F) -> FilterFn<F>
 where
-    F: Fn(&mut Route) -> U,
+    F: Fn(&mut Stanza) -> U,
     U: TryFuture,
     U::Ok: Tuple,
     U::Error: IsReject,
@@ -459,7 +460,7 @@ pub(crate) fn filter_fn_one<F, U>(
     func: F,
 ) -> impl Filter<Extract = (U::Ok,), Error = U::Error> + Copy
 where
-    F: Fn(&mut Route) -> U + Copy,
+    F: Fn(&mut Stanza) -> U + Copy,
     U: TryFuture + Send + 'static,
     U::Ok: Send,
     U::Error: IsReject,
@@ -476,7 +477,7 @@ pub(crate) struct FilterFn<F> {
 
 impl<F, U> FilterBase for FilterFn<F>
 where
-    F: Fn(&mut Route) -> U,
+    F: Fn(&mut Stanza) -> U,
     U: TryFuture + Send + 'static,
     U::Ok: Tuple + Send,
     U::Error: IsReject,
@@ -487,6 +488,6 @@ where
 
     #[inline]
     fn filter(&self, _: Internal) -> Self::Future {
-        route::with(|route| (self.func)(route)).into_future()
+        filtered_stanza::with(|stanza| (self.func)(stanza)).into_future()
     }
 }

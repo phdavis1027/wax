@@ -1,10 +1,10 @@
 #![deny(warnings)]
-use warp::Filter;
+use wax::Filter;
 
 #[tokio::main]
 async fn main() {
     // Match any request and return hello world!
-    let routes = warp::any().map(|| "Hello, World!");
+    let routes = wax::any().map(|| "Hello, World!");
 
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    wax::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }

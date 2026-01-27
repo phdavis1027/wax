@@ -10,18 +10,18 @@
 //! up your full set. Consider these example filters:
 //!
 //! ```
-//! use warp::Filter;
+//! use wax::Filter;
 //!
-//! fn sum() -> impl Filter<Extract = (u32,), Error = warp::Rejection> + Copy {
-//!     warp::path::param()
-//!         .and(warp::path::param())
+//! fn sum() -> impl Filter<Extract = (u32,), Error = wax::Rejection> + Copy {
+//!     wax::path::param()
+//!         .and(wax::path::param())
 //!         .map(|x: u32, y: u32| {
 //!             x + y
 //!         })
 //! }
 //!
-//! fn math() -> impl Filter<Extract = (String,), Error = warp::Rejection> + Copy {
-//!     warp::post()
+//! fn math() -> impl Filter<Extract = (String,), Error = wax::Rejection> + Copy {
+//!     wax::post()
 //!         .and(sum())
 //!         .map(|z: u32| {
 //!             format!("Sum = {}", z)
@@ -32,14 +32,14 @@
 //! We can test some requests against the `sum` filter like this:
 //!
 //! ```
-//! # use warp::Filter;
+//! # use wax::Filter;
 //! #[tokio::test]
 //! async fn test_sum() {
-//! #    let sum = || warp::any().map(|| 3);
+//! #    let sum = || wax::any().map(|| 3);
 //!     let filter = sum();
 //!
 //!     // Execute `sum` and get the `Extract` back.
-//!     let value = warp::test::request()
+//!     let value = wax::test::request()
 //!         .path("/1/2")
 //!         .filter(&filter)
 //!         .await
@@ -48,7 +48,7 @@
 //!
 //!     // Or simply test if a request matches (doesn't reject).
 //!     assert!(
-//!         warp::test::request()
+//!         wax::test::request()
 //!             .path("/1/-5")
 //!             .matches(&filter)
 //!             .await
@@ -62,18 +62,18 @@
 //! a `String` that can be turned into a response.
 //!
 //! ```
-//! # use warp::Filter;
+//! # use wax::Filter;
 //! #[test]
 //! fn test_math() {
-//! #    let math = || warp::any().map(warp::reply);
+//! #    let math = || wax::any().map(wax::reply);
 //!     let filter = math();
 //!
-//!     let res = warp::test::request()
+//!     let res = wax::test::request()
 //!         .path("/1/2")
 //!         .reply(&filter);
 //!     assert_eq!(res.status(), 405, "GET is not allowed");
 //!
-//!     let res = warp::test::request()
+//!     let res = wax::test::request()
 //!         .method("POST")
 //!         .path("/1/2")
 //!         .reply(&filter);
@@ -175,7 +175,7 @@ impl RequestBuilder {
     /// # Example
     ///
     /// ```
-    /// let req = warp::test::request()
+    /// let req = wax::test::request()
     ///     .method("POST");
     /// ```
     ///
@@ -195,7 +195,7 @@ impl RequestBuilder {
     /// # Example
     ///
     /// ```
-    /// let req = warp::test::request()
+    /// let req = wax::test::request()
     ///     .path("/todos/33");
     /// ```
     ///
@@ -214,7 +214,7 @@ impl RequestBuilder {
     /// # Example
     ///
     /// ```
-    /// let req = warp::test::request()
+    /// let req = wax::test::request()
     ///     .header("accept", "application/json");
     /// ```
     ///
@@ -245,7 +245,7 @@ impl RequestBuilder {
     /// ```
     /// use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     ///
-    /// let req = warp::test::request()
+    /// let req = wax::test::request()
     ///     .remote_addr(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080));
     /// ```
     pub fn remote_addr(mut self, addr: SocketAddr) -> Self {
@@ -269,7 +269,7 @@ impl RequestBuilder {
     /// # Example
     ///
     /// ```
-    /// let req = warp::test::request()
+    /// let req = wax::test::request()
     ///     .body("foo=bar&baz=quux");
     /// ```
     pub fn body(mut self, body: impl AsRef<[u8]>) -> Self {
@@ -284,7 +284,7 @@ impl RequestBuilder {
     /// # Example
     ///
     /// ```
-    /// let req = warp::test::request()
+    /// let req = wax::test::request()
     ///     .json(&true);
     /// ```
     pub fn json(mut self, val: &impl Serialize) -> Self {
@@ -301,9 +301,9 @@ impl RequestBuilder {
     ///
     /// ```no_run
     /// async {
-    ///     let param = warp::path::param::<u32>();
+    ///     let param = wax::path::param::<u32>();
     ///
-    ///     let ex = warp::test::request()
+    ///     let ex = wax::test::request()
     ///         .path("/41")
     ///         .filter(&param)
     ///         .await
@@ -312,7 +312,7 @@ impl RequestBuilder {
     ///     assert_eq!(ex, 41);
     ///
     ///     assert!(
-    ///         warp::test::request()
+    ///         wax::test::request()
     ///             .path("/foo")
     ///             .filter(&param)
     ///             .await
@@ -336,18 +336,18 @@ impl RequestBuilder {
     ///
     /// ```no_run
     /// async {
-    ///     let get = warp::get();
-    ///     let post = warp::post();
+    ///     let get = wax::get();
+    ///     let post = wax::post();
     ///
     ///     assert!(
-    ///         warp::test::request()
+    ///         wax::test::request()
     ///             .method("GET")
     ///             .matches(&get)
     ///             .await
     ///     );
     ///
     ///     assert!(
-    ///         !warp::test::request()
+    ///         !wax::test::request()
     ///             .method("GET")
     ///             .matches(&post)
     ///             .await
@@ -425,7 +425,7 @@ impl WsBuilder {
     /// # Example
     ///
     /// ```
-    /// let req = warp::test::ws()
+    /// let req = wax::test::ws()
     ///     .path("/chat");
     /// ```
     ///
@@ -444,7 +444,7 @@ impl WsBuilder {
     /// # Example
     ///
     /// ```
-    /// let req = warp::test::ws()
+    /// let req = wax::test::ws()
     ///     .header("foo", "bar");
     /// ```
     ///
@@ -470,17 +470,17 @@ impl WsBuilder {
     ///
     /// ```no_run
     /// use futures_util::future;
-    /// use warp::Filter;
+    /// use wax::Filter;
     /// #[tokio::main]
     /// # async fn main() {
     ///
     /// // Some route that accepts websockets (but drops them immediately).
-    /// let route = warp::ws()
-    ///     .map(|ws: warp::ws::Ws| {
+    /// let route = wax::ws()
+    ///     .map(|ws: wax::ws::Ws| {
     ///         ws.on_upgrade(|_| future::ready(()))
     ///     });
     ///
-    /// let client = warp::test::ws()
+    /// let client = wax::test::ws()
     ///     .handshake(route)
     ///     .await
     ///     .expect("handshake");

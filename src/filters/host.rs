@@ -14,11 +14,11 @@ use std::str::FromStr;
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
 /// let multihost =
-///     warp::host::exact("foo.com").map(|| "you've reached foo.com")
-///     .or(warp::host::exact("bar.com").map(|| "you've reached bar.com"));
+///     wax::host::exact("foo.com").map(|| "you've reached foo.com")
+///     .or(wax::host::exact("bar.com").map(|| "you've reached bar.com"));
 /// ```
 pub fn exact(expected: &str) -> impl Filter<Extract = (), Error = Rejection> + Clone {
     let expected = Authority::from_str(expected).expect("invalid host/authority");
@@ -44,9 +44,9 @@ pub fn exact(expected: &str) -> impl Filter<Extract = (), Error = Rejection> + C
 /// # Example
 ///
 /// ```
-/// use warp::{Filter, host::Authority};
+/// use wax::{Filter, host::Authority};
 ///
-/// let host = warp::host::optional()
+/// let host = wax::host::optional()
 ///     .map(|authority: Option<Authority>| {
 ///         if let Some(a) = authority {
 ///             format!("{} is currently not at home", a.host())

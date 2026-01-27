@@ -1,11 +1,11 @@
 #![deny(warnings)]
-use warp::{http::Uri, Filter};
+use wax::{http::Uri, Filter};
 
 #[tokio::test]
 async fn redirect_uri() {
-    let over_there = warp::any().map(|| warp::redirect(Uri::from_static("/over-there")));
+    let over_there = wax::any().map(|| wax::redirect(Uri::from_static("/over-there")));
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.reply(&over_there).await;
 
     assert_eq!(resp.status(), 301);
@@ -14,9 +14,9 @@ async fn redirect_uri() {
 
 #[tokio::test]
 async fn redirect_found_uri() {
-    let over_there = warp::any().map(|| warp::redirect::found(Uri::from_static("/over-there")));
+    let over_there = wax::any().map(|| wax::redirect::found(Uri::from_static("/over-there")));
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.reply(&over_there).await;
 
     assert_eq!(resp.status(), 302);
@@ -25,9 +25,9 @@ async fn redirect_found_uri() {
 
 #[tokio::test]
 async fn redirect_see_other_uri() {
-    let over_there = warp::any().map(|| warp::redirect::see_other(Uri::from_static("/over-there")));
+    let over_there = wax::any().map(|| wax::redirect::see_other(Uri::from_static("/over-there")));
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.reply(&over_there).await;
 
     assert_eq!(resp.status(), 303);
@@ -36,9 +36,9 @@ async fn redirect_see_other_uri() {
 
 #[tokio::test]
 async fn redirect_temporary_uri() {
-    let over_there = warp::any().map(|| warp::redirect::temporary(Uri::from_static("/over-there")));
+    let over_there = wax::any().map(|| wax::redirect::temporary(Uri::from_static("/over-there")));
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.reply(&over_there).await;
 
     assert_eq!(resp.status(), 307);
@@ -47,9 +47,9 @@ async fn redirect_temporary_uri() {
 
 #[tokio::test]
 async fn redirect_permanent_uri() {
-    let over_there = warp::any().map(|| warp::redirect::permanent(Uri::from_static("/over-there")));
+    let over_there = wax::any().map(|| wax::redirect::permanent(Uri::from_static("/over-there")));
 
-    let req = warp::test::request();
+    let req = wax::test::request();
     let resp = req.reply(&over_there).await;
 
     assert_eq!(resp.status(), 308);

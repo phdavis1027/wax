@@ -6,7 +6,7 @@
 //!
 //! use std::time::Duration;
 //! use std::convert::Infallible;
-//! use warp::{Filter, sse::Event};
+//! use wax::{Filter, sse::Event};
 //! use futures_util::{stream::iter, Stream};
 //!
 //! fn sse_events() -> impl Stream<Item = Result<Event, Infallible>> {
@@ -25,10 +25,10 @@
 //!     ])
 //! }
 //!
-//! let app = warp::path("push-notifications")
-//!     .and(warp::get())
+//! let app = wax::path("push-notifications")
+//!     .and(wax::get())
 //!     .map(|| {
-//!         warp::sse::reply(warp::sse::keep_alive().stream(sse_events()))
+//!         wax::sse::reply(wax::sse::keep_alive().stream(sse_events()))
 //!     });
 //! ```
 //!
@@ -194,13 +194,13 @@ impl fmt::Display for Event {
 /// Typically this identifier represented as number or string.
 ///
 /// ```
-/// let app = warp::sse::last_event_id::<u32>();
+/// let app = wax::sse::last_event_id::<u32>();
 ///
 /// // The identifier is present
 /// # #[cfg(feature = "test")]
 /// async {
 ///     assert_eq!(
-///         warp::test::request()
+///         wax::test::request()
 ///            .header("Last-Event-ID", "12")
 ///            .filter(&app)
 ///            .await
@@ -210,7 +210,7 @@ impl fmt::Display for Event {
 ///
 ///     // The identifier is missing
 ///     assert_eq!(
-///        warp::test::request()
+///        wax::test::request()
 ///            .filter(&app)
 ///            .await
 ///            .unwrap(),
@@ -219,7 +219,7 @@ impl fmt::Display for Event {
 ///
 ///     // The identifier is not a valid
 ///     assert!(
-///        warp::test::request()
+///        wax::test::request()
 ///            .header("Last-Event-ID", "abc")
 ///            .filter(&app)
 ///            .await
@@ -249,7 +249,7 @@ where
 /// use futures_util::Stream;
 /// use futures_util::stream::iter;
 /// use std::convert::Infallible;
-/// use warp::{Filter, sse::Event};
+/// use wax::{Filter, sse::Event};
 /// use serde_derive::Serialize;
 ///
 /// #[derive(Serialize)]
@@ -282,11 +282,11 @@ where
 ///
 /// # #[cfg(feature = "test")]
 /// async {
-///     let app = warp::path("sse").and(warp::get()).map(|| {
-///        warp::sse::reply(event_stream())
+///     let app = wax::path("sse").and(wax::get()).map(|| {
+///        wax::sse::reply(event_stream())
 ///     });
 ///
-///     let res = warp::test::request()
+///     let res = wax::test::request()
 ///         .method("GET")
 ///         .header("Connection", "Keep-Alive")
 ///         .path("/sse")
@@ -425,7 +425,7 @@ struct SseKeepAlive<S> {
 /// use futures_util::StreamExt;
 /// use tokio::time::interval;
 /// use tokio_stream::wrappers::IntervalStream;
-/// use warp::{Filter, Stream, sse::Event};
+/// use wax::{Filter, Stream, sse::Event};
 ///
 /// // create server-sent event
 /// fn sse_counter(counter: u64) ->  Result<Event, Infallible> {
@@ -433,8 +433,8 @@ struct SseKeepAlive<S> {
 /// }
 ///
 /// fn main() {
-///     let routes = warp::path("ticks")
-///         .and(warp::get())
+///     let routes = wax::path("ticks")
+///         .and(wax::get())
 ///         .map(|| {
 ///             let mut counter: u64 = 0;
 ///             let interval = interval(Duration::from_secs(15));
@@ -444,11 +444,11 @@ struct SseKeepAlive<S> {
 ///                 sse_counter(counter)
 ///             });
 ///             // reply using server-sent events
-///             let stream = warp::sse::keep_alive()
+///             let stream = wax::sse::keep_alive()
 ///                 .interval(Duration::from_secs(5))
 ///                 .text("thump".to_string())
 ///                 .stream(event_stream);
-///             warp::sse::reply(stream)
+///             wax::sse::reply(stream)
 ///         });
 /// }
 /// ```

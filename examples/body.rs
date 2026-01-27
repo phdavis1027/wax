@@ -2,7 +2,7 @@
 
 use serde_derive::{Deserialize, Serialize};
 
-use warp::Filter;
+use wax::Filter;
 
 #[derive(Deserialize, Serialize)]
 struct Employee {
@@ -15,16 +15,16 @@ async fn main() {
     pretty_env_logger::init();
 
     // POST /employees/:rate  {"name":"Sean","rate":2}
-    let promote = warp::post()
-        .and(warp::path("employees"))
-        .and(warp::path::param::<u32>())
+    let promote = wax::post()
+        .and(wax::domain_is("employees"))
+        .and(wax::path::param::<u32>())
         // Only accept bodies smaller than 16kb...
-        .and(warp::body::content_length_limit(1024 * 16))
-        .and(warp::body::json())
+        .and(wax::body::content_length_limit(1024 * 16))
+        .and(wax::body::json())
         .map(|rate, mut employee: Employee| {
             employee.rate = rate;
-            warp::reply::json(&employee)
+            wax::reply::json(&employee)
         });
 
-    warp::serve(promote).run(([127, 0, 0, 1], 3030)).await
+    wax::serve(promote).run(([127, 0, 0, 1], 3030)).await
 }

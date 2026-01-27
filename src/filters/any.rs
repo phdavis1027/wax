@@ -14,9 +14,9 @@ use crate::filter::{Filter, FilterBase, Internal};
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let route = warp::any()
+/// let route = wax::any()
 ///     .map(|| {
 ///         "I always return this string!"
 ///     });
@@ -31,14 +31,14 @@ use crate::filter::{Filter, FilterBase, Internal};
 ///
 /// ```
 /// use std::sync::Arc;
-/// use warp::Filter;
+/// use wax::Filter;
 ///
 /// let state = Arc::new(vec![33, 41]);
-/// let with_state = warp::any().map(move || state.clone());
+/// let with_state = wax::any().map(move || state.clone());
 ///
 /// // Now we could `and` with any other filter:
 ///
-/// let route = warp::path::param()
+/// let route = wax::path::param()
 ///     .and(with_state)
 ///     .map(|param_id: u32, db: Arc<Vec<u32>>| {
 ///         db.contains(&param_id)

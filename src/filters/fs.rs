@@ -43,7 +43,7 @@ use crate::reply::{Reply, Response};
 ///
 /// ```
 /// // Always serves this file from the file system.
-/// let route = warp::fs::file("/www/static/app.js");
+/// let route = wax::fs::file("/www/static/app.js");
 /// ```
 pub fn file(path: impl Into<PathBuf>) -> impl FilterClone<Extract = One<File>, Error = Rejection> {
     let path = Arc::new(path.into());
@@ -66,13 +66,13 @@ pub fn file(path: impl Into<PathBuf>) -> impl FilterClone<Extract = One<File>, E
 /// # Example
 ///
 /// ```
-/// use warp::Filter;
+/// use wax::Filter;
 ///
 /// // Matches requests that start with `/static`,
 /// // and then uses the rest of that path to lookup
 /// // and serve a file from `/www/static`.
-/// let route = warp::path("static")
-///     .and(warp::fs::dir("/www/static"));
+/// let route = wax::path("static")
+///     .and(wax::fs::dir("/www/static"));
 ///
 /// // For example:
 /// // - `GET /static/app.js` would serve the file `/www/static/app.js`
@@ -228,13 +228,13 @@ impl File {
     /// The example below changes the Content-Type response header for every file called `video.mp4`.
     ///
     /// ```
-    /// use warp::{Filter, reply::Reply};
+    /// use wax::{Filter, reply::Reply};
     ///
-    /// let route = warp::path("static")
-    ///     .and(warp::fs::dir("/www/static"))
-    ///     .map(|reply: warp::filters::fs::File| {
+    /// let route = wax::path("static")
+    ///     .and(wax::fs::dir("/www/static"))
+    ///     .map(|reply: wax::filters::fs::File| {
     ///         if reply.path().ends_with("video.mp4") {
-    ///             warp::reply::with_header(reply, "Content-Type", "video/mp4").into_response()
+    ///             wax::reply::with_header(reply, "Content-Type", "video/mp4").into_response()
     ///         } else {
     ///             reply.into_response()
     ///         }

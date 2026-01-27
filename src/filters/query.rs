@@ -14,13 +14,13 @@ use crate::reject::{self, Rejection};
 ///
 /// ```
 /// use std::collections::HashMap;
-/// use warp::{
+/// use wax::{
 ///     http::Response,
 ///     Filter,
 /// };
 ///
-/// let route = warp::any()
-///     .and(warp::query::<HashMap<String, String>>())
+/// let route = wax::any()
+///     .and(wax::query::<HashMap<String, String>>())
 ///     .map(|map: HashMap<String, String>| {
 ///         let mut response: Vec<String> = Vec::new();
 ///         for (key, value) in map.into_iter() {
@@ -36,7 +36,7 @@ use crate::reject::{self, Rejection};
 /// ```
 /// use serde_derive::{Deserialize, Serialize};
 /// use std::collections::HashMap;
-/// use warp::{
+/// use wax::{
 ///     http::Response,
 ///     Filter,
 /// };
@@ -47,8 +47,8 @@ use crate::reject::{self, Rejection};
 ///     bar: u8,
 /// }
 ///
-/// let route = warp::any()
-///     .and(warp::query::<FooQuery>())
+/// let route = wax::any()
+///     .and(wax::query::<FooQuery>())
 ///     .map(|q: FooQuery| {
 ///         if let Some(foo) = q.foo {
 ///             Response::builder().body(format!("foo={}", foo))
@@ -58,7 +58,7 @@ use crate::reject::{self, Rejection};
 ///     });
 /// ```
 ///
-/// For more examples, please take a look at [examples/query_string.rs](https://github.com/seanmonstar/warp/blob/master/examples/query_string.rs).
+/// For more examples, please take a look at [examples/query_string.rs](https://github.com/seanmonstar/wax/blob/master/examples/query_string.rs).
 ///
 /// [Serde]: https://docs.rs/serde
 pub fn query<T: DeserializeOwned + Send + 'static>(

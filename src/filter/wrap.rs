@@ -31,14 +31,14 @@ where
 /// # Example
 ///
 /// ```
-/// use crate::warp::Filter;
+/// use crate::wax::Filter;
 ///
-/// let route = warp::any()
+/// let route = wax::any()
 ///     .map(|| "hello world")
-///     .with(warp::wrap_fn(|filter| filter));
+///     .with(wax::wrap_fn(|filter| filter));
 /// ```
 ///
-/// You can find the full example in the [usage example](https://github.com/seanmonstar/warp/blob/master/examples/wrapping.rs).
+/// You can find the full example in the [usage example](https://github.com/seanmonstar/wax/blob/master/examples/wrapping.rs).
 pub fn wrap_fn<F, T, U>(func: F) -> WrapFn<F>
 where
     F: Fn(T) -> U,

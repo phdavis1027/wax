@@ -8,8 +8,8 @@ use std::sync::{
 use futures_util::{SinkExt, StreamExt, TryFutureExt};
 use tokio::sync::{mpsc, RwLock};
 use tokio_stream::wrappers::UnboundedReceiverStream;
-use warp::ws::{Message, WebSocket};
-use warp::Filter;
+use wax::ws::{Message, WebSocket};
+use wax::Filter;
 
 /// Our global unique user id counter.
 static NEXT_USER_ID: AtomicUsize = AtomicUsize::new(1);
@@ -17,7 +17,7 @@ static NEXT_USER_ID: AtomicUsize = AtomicUsize::new(1);
 /// Our state of currently connected users.
 ///
 /// - Key is their id
-/// - Value is a sender of `warp::ws::Message`
+/// - Value is a sender of `wax::ws::Message`
 type Users = Arc<RwLock<HashMap<usize, mpsc::UnboundedSender<Message>>>>;
 
 #[tokio::main]
@@ -28,24 +28,24 @@ async fn main() {
     // is a websocket sender.
     let users = Users::default();
     // Turn our "state" into a new Filter...
-    let users = warp::any().map(move || users.clone());
+    let users = wax::any().map(move || users.clone());
 
     // GET /chat -> websocket upgrade
-    let chat = warp::path("chat")
+    let chat = wax::domain_is("chat")
         // The `ws()` filter will prepare Websocket handshake...
-        .and(warp::ws())
+        .and(wax::ws())
         .and(users)
-        .map(|ws: warp::ws::Ws, users| {
+        .map(|ws: wax::ws::Ws, users| {
             // This will call our function if the handshake succeeds.
             ws.on_upgrade(move |socket| user_connected(socket, users))
         });
 
     // GET / -> index html
-    let index = warp::path::end().map(|| warp::reply::html(INDEX_HTML));
+    let index = wax::path::end().map(|| wax::reply::html(INDEX_HTML));
 
     let routes = index.or(chat);
 
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    wax::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }
 
 async fn user_connected(ws: WebSocket, users: Users) {

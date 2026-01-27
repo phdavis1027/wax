@@ -1,7 +1,7 @@
 #![deny(warnings)]
 
 use std::env;
-use warp::Filter;
+use wax::Filter;
 
 /// Provides a RESTful web server managing some Todos.
 ///
@@ -25,20 +25,20 @@ async fn main() {
     let api = filters::todos(db);
 
     // View access logs by setting `RUST_LOG=todos`.
-    let routes = api.with(warp::log("todos"));
+    let routes = api.with(wax::log("todos"));
     // Start up the server...
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    wax::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }
 
 mod filters {
     use super::handlers;
     use super::models::{Db, ListOptions, Todo};
-    use warp::Filter;
+    use wax::Filter;
 
     /// The 4 TODOs filters combined.
     pub fn todos(
         db: Db,
-    ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+    ) -> impl Filter<Extract = (impl wax::Reply,), Error = wax::Rejection> + Clone {
         todos_list(db.clone())
             .or(todos_create(db.clone()))
             .or(todos_update(db.clone()))
@@ -48,10 +48,10 @@ mod filters {
     /// GET /todos?offset=3&limit=5
     pub fn todos_list(
         db: Db,
-    ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-        warp::path!("todos")
-            .and(warp::get())
-            .and(warp::query::<ListOptions>())
+    ) -> impl Filter<Extract = (impl wax::Reply,), Error = wax::Rejection> + Clone {
+        wax::path!("todos")
+            .and(wax::get())
+            .and(wax::query::<ListOptions>())
             .and(with_db(db))
             .and_then(handlers::list_todos)
     }
@@ -59,9 +59,9 @@ mod filters {
     /// POST /todos with JSON body
     pub fn todos_create(
         db: Db,
-    ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-        warp::path!("todos")
-            .and(warp::post())
+    ) -> impl Filter<Extract = (impl wax::Reply,), Error = wax::Rejection> + Clone {
+        wax::path!("todos")
+            .and(wax::post())
             .and(json_body())
             .and(with_db(db))
             .and_then(handlers::create_todo)
@@ -70,9 +70,9 @@ mod filters {
     /// PUT /todos/:id with JSON body
     pub fn todos_update(
         db: Db,
-    ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-        warp::path!("todos" / u64)
-            .and(warp::put())
+    ) -> impl Filter<Extract = (impl wax::Reply,), Error = wax::Rejection> + Clone {
+        wax::path!("todos" / u64)
+            .and(wax::put())
             .and(json_body())
             .and(with_db(db))
             .and_then(handlers::update_todo)
@@ -81,29 +81,29 @@ mod filters {
     /// DELETE /todos/:id
     pub fn todos_delete(
         db: Db,
-    ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+    ) -> impl Filter<Extract = (impl wax::Reply,), Error = wax::Rejection> + Clone {
         // We'll make one of our endpoints admin-only to show how authentication filters are used
-        let admin_only = warp::header::exact("authorization", "Bearer admin");
+        let admin_only = wax::header::exact("authorization", "Bearer admin");
 
-        warp::path!("todos" / u64)
+        wax::path!("todos" / u64)
             // It is important to put the auth check _after_ the path filters.
             // If we put the auth check before, the request `PUT /todos/invalid-string`
             // would try this filter and reject because the authorization header doesn't match,
             // rather because the param is wrong for that other path.
             .and(admin_only)
-            .and(warp::delete())
+            .and(wax::delete())
             .and(with_db(db))
             .and_then(handlers::delete_todo)
     }
 
     fn with_db(db: Db) -> impl Filter<Extract = (Db,), Error = std::convert::Infallible> + Clone {
-        warp::any().map(move || db.clone())
+        wax::any().map(move || db.clone())
     }
 
-    fn json_body() -> impl Filter<Extract = (Todo,), Error = warp::Rejection> + Clone {
+    fn json_body() -> impl Filter<Extract = (Todo,), Error = wax::Rejection> + Clone {
         // When accepting a body, we want a JSON body
         // (and to reject huge payloads)...
-        warp::body::content_length_limit(1024 * 16).and(warp::body::json())
+        wax::body::content_length_limit(1024 * 16).and(wax::body::json())
     }
 }
 
@@ -114,9 +114,9 @@ mod filters {
 mod handlers {
     use super::models::{Db, ListOptions, Todo};
     use std::convert::Infallible;
-    use warp::http::StatusCode;
+    use wax::http::StatusCode;
 
-    pub async fn list_todos(opts: ListOptions, db: Db) -> Result<impl warp::Reply, Infallible> {
+    pub async fn list_todos(opts: ListOptions, db: Db) -> Result<impl wax::Reply, Infallible> {
         // Just return a JSON array of todos, applying the limit and offset.
         let todos = db.lock().await;
         let todos: Vec<Todo> = todos
@@ -125,10 +125,10 @@ mod handlers {
             .skip(opts.offset.unwrap_or(0))
             .take(opts.limit.unwrap_or(std::usize::MAX))
             .collect();
-        Ok(warp::reply::json(&todos))
+        Ok(wax::reply::json(&todos))
     }
 
-    pub async fn create_todo(create: Todo, db: Db) -> Result<impl warp::Reply, Infallible> {
+    pub async fn create_todo(create: Todo, db: Db) -> Result<impl wax::Reply, Infallible> {
         log::debug!("create_todo: {:?}", create);
 
         let mut vec = db.lock().await;
@@ -151,7 +151,7 @@ mod handlers {
         id: u64,
         update: Todo,
         db: Db,
-    ) -> Result<impl warp::Reply, Infallible> {
+    ) -> Result<impl wax::Reply, Infallible> {
         log::debug!("update_todo: id={}, todo={:?}", id, update);
         let mut vec = db.lock().await;
 
@@ -169,7 +169,7 @@ mod handlers {
         Ok(StatusCode::NOT_FOUND)
     }
 
-    pub async fn delete_todo(id: u64, db: Db) -> Result<impl warp::Reply, Infallible> {
+    pub async fn delete_todo(id: u64, db: Db) -> Result<impl wax::Reply, Infallible> {
         log::debug!("delete_todo: id={}", id);
 
         let mut vec = db.lock().await;
@@ -225,8 +225,8 @@ mod models {
 
 #[cfg(test)]
 mod tests {
-    use warp::http::StatusCode;
-    use warp::test::request;
+    use wax::http::StatusCode;
+    use wax::test::request;
 
     use super::{
         filters,

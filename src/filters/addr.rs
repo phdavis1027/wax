@@ -14,9 +14,9 @@ use crate::filter::{filter_fn_one, Filter};
 ///
 /// ```
 /// use std::net::SocketAddr;
-/// use warp::Filter;
+/// use wax::Filter;
 ///
-/// let route = warp::addr::remote()
+/// let route = wax::addr::remote()
 ///     .map(|addr: Option<SocketAddr>| {
 ///         println!("remote address = {:?}", addr);
 ///     });
