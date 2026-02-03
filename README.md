@@ -1,6 +1,12 @@
 # WIP: DO NOT USE THIS FOR ANYTHING REAL
 # wax
 
+> **wax** /wæks/ *v. intransitive, copulative, literary.*
+> To increasingly assume the specified characteristic.
+> *to wax poetic — to wax eloquent — to wax wode*
+>
+> — [Wiktionary](https://en.wiktionary.org/wiki/wax)
+
 A super-easy, composable framework for building XMPP server component servers. Forked from [warp](https://crates.io/crates/warp) and built on [xmpp-rs](https://xmpp.rs/). An attempt to bring the nice stanza-handler API of [Blather](https://github.com/adhearsion/blather) into the typesafe world of Rust.
 
 The fundamental building block of `wax` is the `Filter`: they can be combined
