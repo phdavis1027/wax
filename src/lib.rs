@@ -38,8 +38,6 @@ pub mod reply;
 #[cfg(feature = "server")]
 mod server;
 mod service;
-pub mod xmpp;
-
 pub use self::error::Error;
 pub use self::filter::wrap_fn;
 pub use self::filter::Filter;
@@ -50,10 +48,10 @@ pub mod id {
     pub use crate::filters::id::param;
 }
 pub use self::filters::log::log;
-pub use self::filters::stanza::iq;
 pub use self::filters::stanza::message;
 pub use self::filters::stanza::presence;
-pub use self::filters::stanza::{echo, recipient, reply, sender, sink};
+pub use self::filters::stanza::query;
+pub use self::filters::stanza::{echo, from, iq, reply, require_from, require_to, sink, to};
 pub mod log {
     //! Stanza logging.
     pub use crate::filters::log::{custom, Info, Log};

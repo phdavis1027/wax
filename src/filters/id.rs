@@ -40,8 +40,8 @@ pub fn param() -> impl Filter<Extract = One<String>, Error = Rejection> + Copy {
 /// use wax::Filter;
 ///
 /// let route = wax::id("request-123")
-///     .and(wax::iq::param())
-///     .map(|iq| { /* handle */ });
+///     .and(wax::iq().get().require_from())
+///     .map(|from| { /* handle */ });
 /// ```
 pub fn id(expected: &'static str) -> impl Filter<Extract = (), Error = Rejection> + Copy {
     param()

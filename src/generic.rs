@@ -120,9 +120,10 @@ macro_rules! product {
 }
 
 macro_rules! Product {
-    ($H:ty) => { Product<$H, ()> };
-    ($H:ty, $($T:ty),*) => { Product<$H, Product!($($T),*)> };
+    ($H:ty) => { $crate::generic::Product<$H, ()> };
+    ($H:ty, $($T:ty),*) => { $crate::generic::Product<$H, Product!($($T),*)> };
 }
+pub(crate) use Product as HListProduct;
 
 macro_rules! product_pat {
     ($H:pat) => { Product($H, ()) };
